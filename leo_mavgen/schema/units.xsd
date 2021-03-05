@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:attribute name="units">
+        <!--The 'units' attribute attached to a field in a mavlink message-->
+        <xs:simpleType name="mavlink_units">
+            <xs:restriction base="xs:string">
+
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+
+</xs:schema>
