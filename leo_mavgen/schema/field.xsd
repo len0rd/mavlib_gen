@@ -7,8 +7,6 @@
     xmlns="">
 
     <xs:include schemaLocation="types.xsd" />
-    <xs:include schemaLocation="units.xsd" />
-    <xs:include schemaLocation="name.xsd" />
 
     <xs:attribute name="type">
         <xs:simpleType>
