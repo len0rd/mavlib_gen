@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Top-level mavlink schema defintion
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns="">
+
+    <xs:include schemaLocation="messages.xsd" />
+
+    <xs:element name="mavlink">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="include" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="messages" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

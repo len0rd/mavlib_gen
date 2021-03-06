@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Definition of attributes and contents of a 'field' element
+    within a message definition
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns="">
+
+    <xs:include schemaLocation="units.xsd" />
+    <xs:include schemaLocation="name.xsd" />
+
+    <xs:attribute name="type">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <!-- integer pattern matcher-->
+                <xs:pattern value="(u)?int(8|16|32|64)_t(\[\d+\])?" />
+                <xs:pattern value="float(\[\d+\])?" />
+                <xs:pattern value="double(\[\d+\])?" />
+                <xs:pattern value="char(\[\d+\])?" />
+                <!-- Magic type for heartbeat message-->
+                <xs:pattern value="uint8_t_mavlink_version" />
+                <!-- Note the 0.9 array type is not included here. Stop using 0.9! -->
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+
+    <xs:element name="field">
+        <xs:complexType>
+            <xs:attribute ref="type" use="required" />
+            <xs:attribute ref="name" use="required" />
+            <xs:attribute ref="units"/>
+            <xs:attribute name="enum" type="xs:string" />
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

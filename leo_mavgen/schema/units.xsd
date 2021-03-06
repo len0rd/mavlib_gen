@@ -1,11 +1,101 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    List valid values for the 'units' attribute in a mavlink message field.
+    The MAVLink website lists the enumeration in pymavlinks mavschema.xsd as
+    the official units list so thats what was used
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns="">
 
     <xs:attribute name="units">
-        <!--The 'units' attribute attached to a field in a mavlink message-->
-        <xs:simpleType name="mavlink_units">
+        <xs:simpleType>
             <xs:restriction base="xs:string">
-
+                <!-- time -->
+                <xs:enumeration value="s" /> <!-- seconds -->
+                <xs:enumeration value="ds" /> <!-- deciseconds -->
+                <xs:enumeration value="cs" /> <!-- centiseconds -->
+                <xs:enumeration value="ms" /> <!-- milliseconds -->
+                <xs:enumeration value="us" /> <!-- microseconds -->
+                <xs:enumeration value="Hz" /> <!-- hertz -->
+                <xs:enumeration value="MHz" /> <!-- megahertz -->
+                <!-- distance -->
+                <xs:enumeration value="km" /> <!-- kilometers -->
+                <xs:enumeration value="dam" /> <!-- decameter -->
+                <xs:enumeration value="m" /> <!-- meters -->
+                <xs:enumeration value="m/s" /> <!-- meters per second -->
+                <xs:enumeration value="m/s/s" /> <!-- meters per second per second -->
+                <xs:enumeration value="m/s*5" /> <!-- meters per second * 5 required from dagar for HIGH_LATENCY2 message -->
+                <xs:enumeration value="dm" /> <!-- decimeters -->
+                <xs:enumeration value="dm/s" /> <!-- decimeters per second -->
+                <xs:enumeration value="cm" /> <!-- centimeters -->
+                <xs:enumeration value="cm^2" /> <!-- centimeters squared (typically used in variance) -->
+                <xs:enumeration value="cm/s" /> <!-- centimeters per second -->
+                <xs:enumeration value="mm" /> <!-- millimeters -->
+                <xs:enumeration value="mm/s" /> <!-- millimeters per second -->
+                <xs:enumeration value="mm/h" /> <!-- millimeters per hour -->
+                <!-- temperature -->
+                <xs:enumeration value="K" /> <!-- kelvin -->
+                <xs:enumeration value="degC" /> <!-- degrees celsius -->
+                <xs:enumeration value="cdegC" /> <!-- centi-degrees celsius -->
+                <!-- angle -->
+                <xs:enumeration value="rad" /> <!-- radians -->
+                <xs:enumeration value="rad/s" /> <!-- radians per second -->
+                <xs:enumeration value="mrad/s" /> <!-- milli-radians per second -->
+                <xs:enumeration value="deg" /> <!-- degrees -->
+                <xs:enumeration value="deg/2" /> <!-- degrees/2 required from dagar for HIGH_LATENCY2 message-->
+                <xs:enumeration value="deg/s" /> <!-- degrees per second -->
+                <xs:enumeration value="cdeg" /> <!-- centidegrees -->
+                <xs:enumeration value="cdeg/s" /> <!-- centidegrees per second -->
+                <xs:enumeration value="degE5" /> <!-- degrees * 10E5 -->
+                <xs:enumeration value="degE7" /> <!-- degrees * 10E7 -->
+                <xs:enumeration value="rpm" /> <!-- rotations per minute -->
+                <!-- electricity -->
+                <xs:enumeration value="V" /> <!-- volt -->
+                <xs:enumeration value="cV" /> <!-- centivolt -->
+                <xs:enumeration value="mV" /> <!-- millivolt -->
+                <xs:enumeration value="A" /> <!-- ampere -->
+                <xs:enumeration value="cA" /> <!-- centiampere -->
+                <xs:enumeration value="mA" /> <!-- milliampere -->
+                <xs:enumeration value="mAh" /> <!-- milliampere hour -->
+                <!-- magnetism -->
+                <xs:enumeration value="mT" /> <!-- millitesla -->
+                <xs:enumeration value="gauss" /> <!-- gauss -->
+                <xs:enumeration value="mgauss" /> <!-- milligauss -->
+                <!-- energy -->
+                <xs:enumeration value="hJ" /> <!-- hectojoule -->
+                <!-- power -->
+                <xs:enumeration value="W" /> <!-- watt -->
+                <!-- force -->
+                <xs:enumeration value="mG" /> <!-- milli-G -->
+                <!-- mass -->
+                <xs:enumeration value="g" /> <!-- grams -->
+                <xs:enumeration value="kg" /> <!-- kilograms -->
+                <!-- pressure -->
+                <xs:enumeration value="Pa" /> <!-- pascal -->
+                <xs:enumeration value="hPa" /> <!-- hectopascal -->
+                <xs:enumeration value="kPa" /> <!-- kilopascal -->
+                <xs:enumeration value="mbar" /> <!-- millibar -->
+                <!-- ratio -->
+                <xs:enumeration value="%" /> <!-- percent -->
+                <xs:enumeration value="d%" /> <!-- decipercent -->
+                <xs:enumeration value="c%" /> <!-- centipercent -->
+                <xs:enumeration value="dB" /> <!-- decibel -->
+                <xs:enumeration value="dBm" /> <!-- decibel-milliwatts-->
+                <!-- digital -->
+                <xs:enumeration value="KiB" /> <!-- kibibyte (1024 bytes) -->
+                <xs:enumeration value="KiB/s" /> <!-- kibibyte (1024 bytes) per second -->
+                <xs:enumeration value="MiB" /> <!-- mebibyte (1024*1024 bytes) -->
+                <xs:enumeration value="MiB/s" /> <!-- mebibyte (1024*1024 bytes) per second -->
+                <xs:enumeration value="bytes" /> <!-- bytes -->
+                <xs:enumeration value="bytes/s" /> <!-- bytes per second-->
+                <xs:enumeration value="bits/s" /> <!-- bits per second -->
+                <xs:enumeration value="pix" /> <!-- pixels -->
+                <xs:enumeration value="dpix" /> <!-- decipixels -->
+                <!-- flow -->
+                <xs:enumeration value="g/min" /> <!-- grams/minute -->
+                <xs:enumeration value="cm^3/min" /> <!-- cubic centimeters/minute -->
+                <!-- volume -->
+                <xs:enumeration value="cm^3" /> <!-- cubic centimeters -->
             </xs:restriction>
         </xs:simpleType>
     </xs:attribute>
