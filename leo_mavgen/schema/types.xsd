@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Types shared between various elements. Mainly 'field' and 'param'
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns="">
+
+    <xs:attribute name="instance" type="xs:boolean" />
+
+    <xs:attribute name="enum" type="xs:string" />
+
+    <xs:attribute name="default">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="\d{1,10}"/>
+                <xs:pattern value="0[xX][\da-fA-F]{1,8}"/>
+                <xs:pattern value="0[bB][0-1]{1,32}"/>
+                <xs:pattern value="NaN"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+
+    <xs:element name="deprecated">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element name="description" type="xs:string" minOccurs="1" />
+            </xs:sequence>
+            <xs:attribute name="since" type="xs:gYearMonth" use="required" />
+            <xs:attribute name="replaced_by" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="wip">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element name="description" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="development_status">
+        <xs:choice minOccurs="0" maxOccurs="1">
+            <xs:element ref="deprecated" />
+            <xs:element ref="wip" />
+        </xs:choice>
+    </xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Definition of attributes and elements of 'enum' and 'enums' elements
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns="">
+
+    <xs:include schemaLocation="types.xsd" />
+    <xs:include schemaLocation="units.xsd" />
+    <xs:include schemaLocation="name.xsd" />
+
+    <!-- Used within enum entry elements -->
+    <xs:attribute name="value">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="\d{1,10}"/>
+                <xs:pattern value="0[xX][\da-fA-F]{1,8}"/>
+                <xs:pattern value="0[bB][0-1]{1,32}"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+
+    <!-- param element placed within -->
+    <xs:element name="param">
+        <xs:complexType>
+            <xs:attribute name="index" type="xs:unsignedByte" use="required" />
+            <xs:attribute name="label" type="xs:string" />
+            <xs:attribute ref="units" />
+            <xs:attribute ref="default" />
+            <xs:attribute ref="enum" />
+            <xs:attribute ref="instance" />
+            <xs:attribute name="decimalPlaces" type="xs:unsignedByte" />
+            <xs:attribute name="increment" type="xs:float" />
+            <xs:attribute name="minValue" type="xs:float" />
+            <xs:attribute name="maxValue" type="xs:float" />
+            <xs:attribute name="reserved" type="xs:boolean" default="false"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="entry">
+        <xs:complexType>
+            <xs:complexContent>
+                <xs:extension base="development_status">
+                    <xs:sequence>
+                        <xs:element name="description" type="xs:string" minOccurs="1" maxOccurs="1" />
+                        <xs:element ref="param" minOccurs="0" maxOccurs="unbounded" />
+                    </xs:sequence>
+                    <xs:attribute ref="value" />
+                    <xs:attribute ref="name" use="required" />
+                    <xs:attribute name="hasLocation" type="xs:boolean" default="true" />
+                    <xs:attribute name="isDestination" type="xs:boolean" default="true" />
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="enum">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="deprecated" minOccurs="0" maxOccurs="1" />
+                <xs:element name="description" type="xs:string" minOccurs="1" maxOccurs="1" />
+                <xs:element ref="entry" minOccurs="1" maxOccurs="unbounded" />
+            </xs:sequence>
+            <xs:attribute ref="name" use="required" />
+            <xs:attribute name="bitmask" type="xs:boolean" default="false"/>
+        </xs:complexType>
+        <xs:unique name="unique_enum_entry_name">
+            <xs:selector xpath="entry" />
+            <xs:field xpath="@name" />
+        </xs:unique>
+        <xs:unique name="unique_enum_entry_value">
+            <xs:selector xpath="entry" />
+            <xs:field xpath="@value" />
+        </xs:unique>
+    </xs:element>
+
+    <xs:element name="enums">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="enum" minOccurs="0" maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+        <xs:unique name="unique_enum_enum_name">
+            <xs:selector xpath="enum" />
+            <xs:field xpath="@name" />
+        </xs:unique>
+    </xs:element>
+
+</xs:schema>

@@ -6,6 +6,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns="">
 
+    <xs:include schemaLocation="types.xsd" />
     <xs:include schemaLocation="units.xsd" />
     <xs:include schemaLocation="name.xsd" />
 
@@ -25,11 +26,21 @@
     </xs:attribute>
 
     <xs:element name="field">
-        <xs:complexType>
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element name="description" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
             <xs:attribute ref="type" use="required" />
             <xs:attribute ref="name" use="required" />
-            <xs:attribute ref="units"/>
-            <xs:attribute name="enum" type="xs:string" />
+            <xs:attribute ref="units" />
+            <xs:attribute ref="enum" />
+            <xs:attribute name="default" type="xs:string" />
+            <!-- Indicates this field is used to differentiate between distinct sensors that use this message -->
+            <xs:attribute ref="instance" />
+            <!-- Optional - TBD -->
+            <xs:attribute name="print_format" type="xs:string" />
+            <!-- Optional - TBD -->
+            <xs:attribute name="display" type="xs:string" />
         </xs:complexType>
     </xs:element>
 
