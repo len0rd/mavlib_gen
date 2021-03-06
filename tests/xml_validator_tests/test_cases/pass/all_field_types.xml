@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Test that all valid message field types are accepted by the schema -->
+<!-- This test also confirms field name, msg id and msg name uniqueness is enforced by the schema -->
 <mavlink>
     <messages>
         <message id="1" name="TEST">
@@ -14,6 +16,7 @@
             <field name="testfield8" type="float">Test field</field>
             <field name="testfield9" type="double">Test field</field>
             <field name="testfield10" type="char">Test field</field>
+            <field name="testfield11" type="uint8_t_mavlink_version">Test field</field>
         </message>
         <message id="2" name="TEST_ARR">
             <description>This is the standard test message</description>

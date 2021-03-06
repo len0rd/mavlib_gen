@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test names that contain (but do not equal) a reserved word are valid -->
+<mavlink>
+    <messages>
+        <message id="1" name="TEST">
+            <description>This is the standard test message</description>
+            <field name="break_case" type="int8_t">Test field</field>
+            <field name="letnew" type="uint8_t">Test field</field>
+            <field name="returnreturn" type="int16_t">Test field</field>
+            <field name="throw_throw" type="uint16_t">Test field</field>
+            <field name="tthis" type="int32_t">Test field</field>
+            <field name="typeoff" type="uint32_t">Test field</field>
+            <field name="immplements" type="int64_t">Test field</field>
+        </message>
+    </messages>
+</mavlink>

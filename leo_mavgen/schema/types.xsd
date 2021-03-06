@@ -16,7 +16,7 @@
                     was duplicated from pymavlink
                     NOTE: matches is an XPATH 2.0 function that
                     allows case-insensitive matching-->
-                <xs:assertion test="not(matches($value, '^(break|case|class|catch|const|continue|debugger|default|delete|do|else|export|extends|finally|for|function|if|import|in|instanceof|let|new|return|super|switch|this|throw|try|typeof|var|void|while|with|yield|enum|await|implements|package|protected|static|interface|private|public|abstract|boolean|byte|char|double|final|float|goto|int|long|native|short|synchronized|transient|volatile)$'))" />
+                <xs:assertion test="not(matches(lower-case($value), '^(break|case|class|catch|const|continue|debugger|default|delete|do|else|export|extends|finally|for|function|if|import|in|instanceof|let|new|return|super|switch|this|throw|try|typeof|var|void|while|with|yield|enum|await|implements|package|protected|static|interface|private|public|abstract|boolean|byte|char|double|final|float|goto|int|long|native|short|synchronized|transient|volatile)$'))" />
             </xs:restriction>
         </xs:simpleType>
     </xs:attribute>

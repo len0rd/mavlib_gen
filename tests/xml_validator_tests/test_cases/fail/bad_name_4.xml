@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Field name contains a reserved word -->
+<!-- msg name is a reserved word -->
 <mavlink>
     <messages>
-        <message id="1" name="TEST">
+        <message id="1" name="STATIC">
             <description>This is the standard test message</description>
-            <field name="return" type="int32_t">This field has a bad name</field>
+            <field name="test_field" type="int32_t">Test field</field>
         </message>
     </messages>
 </mavlink>
