@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mavlink>
+    <enums>
+        <message id="1" name="TEST">
+            <description>This is the standard test message</description>
+            <field name="testfield0" type="int8_t">Test field</field>
+            <field name="testfield1" type="uint8_t">Test field</field>
+            <field name="testfield2" type="int16_t">Test field</field>
+            <field name="testfield3" type="uint16_t">Test field</field>
+            <field name="testfield4" type="int32_t">Test field</field>
+        </message>
+    </enums>
+</mavlink>
