@@ -1,11 +1,12 @@
 # Mavlib Gen
 
-A mavlink C lang generator with a permissive MIT license
+A mavlink C lang generator with a permissive MIT license. This project is for a MAVLink generator ONLY.
+No additional features or tools will be included in this project.
 
 ## Features
 
 - [Capable of generation based on complex include trees](#complex-include-trees)
-- Simple, lean helper methods
+- Simple, lean helper methods within generated code
 - Thorough unit tests
 
 ### Complex Include Trees

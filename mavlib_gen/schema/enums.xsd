@@ -40,7 +40,8 @@
             <xs:complexContent>
                 <xs:extension base="development_status">
                     <xs:sequence>
-                        <xs:element name="description" type="xs:string" minOccurs="1" maxOccurs="1" />
+                        <!--TODO: always having a description should be enforced, but common.xml doesnt have descriptions on everything yet-->
+                        <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1" />
                         <xs:element ref="param" minOccurs="0" maxOccurs="unbounded" />
                     </xs:sequence>
                     <xs:attribute ref="value" />
@@ -56,7 +57,8 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="deprecated" minOccurs="0" maxOccurs="1" />
-                <xs:element name="description" type="xs:string" minOccurs="1" maxOccurs="1" />
+                <!--TODO: always having a description should be enforced, but common.xml doesnt have descriptions on everything yet-->
+                <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1" />
                 <xs:element ref="entry" minOccurs="1" maxOccurs="unbounded" />
             </xs:sequence>
             <xs:attribute ref="name" use="required" />

@@ -14,7 +14,8 @@
             <xs:complexContent>
                 <xs:extension base="development_status">
                     <xs:sequence>
-                        <xs:element name="description" minOccurs="1" maxOccurs="1" />
+                        <!--TODO: always having a description should be enforced, but common.xml doesnt have descriptions on everything yet-->
+                        <xs:element name="description" minOccurs="0" maxOccurs="1" />
                         <xs:element ref="field" minOccurs="0" maxOccurs="unbounded" />
                         <!-- Mavlink v2 extensions are optional and require at least 1 field -->
                         <xs:sequence minOccurs="0" maxOccurs="1">

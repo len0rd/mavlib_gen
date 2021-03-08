@@ -12,9 +12,9 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="include" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded" />
-                <xs:element ref="enums" minOccurs="0" maxOccurs="1" />
                 <xs:element name="version" type="xs:unsignedByte" minOccurs="0" maxOccurs="1" />
                 <xs:element name="dialect" type="xs:unsignedByte" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="enums" minOccurs="0" maxOccurs="1" />
                 <xs:element ref="messages" minOccurs="0" maxOccurs="1" />
             </xs:sequence>
         </xs:complexType>

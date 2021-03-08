@@ -27,6 +27,17 @@ class TestXmlSchemaValidator(unittest.TestCase):
         for test_file in test_case_files:
             test_file = os.path.join(test_case_dir, test_file)
             if not self.schema.is_valid(test_file):
-                self.schema.validate(test_file)
+                try:
+                    self.schema.validate(test_file)
+                except xmlschema.validators.exceptions.XMLSchemaValidationError as e:
+                    print("Validation of message definition file '{}' failed!".format(os.path.relpath(test_file)))
+                    reason = ""
+                    if e.reason is not None:
+                        reason += "Reason: {}".format(e.reason)
+                    if e.path is not None:
+                        reason += " At path '{}':".format(e.path)
+                    print(reason)
+                    if xmlschema.etree.is_etree_element(e.elem):
+                        print("\n{}".format(xmlschema.etree.etree_tostring(e.elem, e.namespaces, '', 5)))
                 # schema validation should pass
                 self.fail('Test case file "{}" failed schema validation when it should have passed!'.format(test_file))
