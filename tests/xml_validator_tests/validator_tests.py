@@ -5,7 +5,7 @@ class TestXmlSchemaValidator(unittest.TestCase):
 
     def setUp(self):
         self.script_dir = os.path.dirname(__file__)
-        base_url = os.path.abspath(os.path.join(self.script_dir, '..', '..', 'leo_mavgen', 'schema'))
+        base_url = os.path.abspath(os.path.join(self.script_dir, '..', '..', 'mavlib_gen', 'schema'))
         self.schema = xmlschema.XMLSchema11(os.path.join(base_url, 'mavlink_schema.xsd'), base_url=base_url)
 
     def test_failure_cases(self):

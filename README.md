@@ -1,3 +1,5 @@
+# Mavlib Gen
+
 A mavlink C lang generator with a permissive MIT license
 
 ## Features
@@ -14,7 +16,7 @@ mavlink code from more advanced include trees, such as the one below.
 **ADVANCED TREE HERE**
 
 Such support allows developers to better separate/isolate specific modules of a
-messaging system. Thus avoiding large, hard to navigate files.
+messaging system. Thus avoiding large, hard to navigate definition files.
 
 ### Simple, lean helper methods
 
