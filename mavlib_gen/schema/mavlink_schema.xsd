@@ -18,6 +18,10 @@
                 <xs:element ref="messages" minOccurs="0" maxOccurs="1" />
             </xs:sequence>
         </xs:complexType>
+        <xs:unique name="unique_includes">
+            <xs:selector xpath="include" />
+            <xs:field xpath="." />
+        </xs:unique>
     </xs:element>
 
 </xs:schema>

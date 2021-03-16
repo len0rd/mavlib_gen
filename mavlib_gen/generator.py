@@ -47,9 +47,11 @@ def generate(xmls, output_lang, output_location):
     if not isinstance(xmls, list):
         xmls = [xmls]
 
-    validator.validate(xmls)
-
+    xml_dicts = validator.validate(xmls)
+    if xml_dicts is None:
+        return False # failed to generate
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    generate('common.xml', 'c', 'test/')
+    # generate('common.xml', 'c', 'test/')
+    generate('simple_msg.xml', 'c', 'test/')

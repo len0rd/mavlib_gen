@@ -26,12 +26,13 @@
 ################################################################################
 import os, logging
 import xmlschema
+from xml.etree import ElementTree
 
 log = logging.getLogger(__name__)
 
-def report_schama_validation_error(validation_exception, xml_file):
+def report_schama_validation_error(validation_exception, xml_filename):
     """Helper method to report validation errors in a useful way that I like"""
-    log.error("Validation of message definition file '{}' failed!".format(os.path.relpath(xml_file)))
+    log.error("Validation of message definition file '{}' failed!".format(os.path.relpath(xml_filename)))
     reason = ""
     if validation_exception.reason is not None:
         reason += "Reason: {}".format(validation_exception.reason)
@@ -41,19 +42,30 @@ def report_schama_validation_error(validation_exception, xml_file):
     if xmlschema.etree.is_etree_element(validation_exception.elem):
         log.error("\n{}".format(xmlschema.etree.etree_tostring(validation_exception.elem, validation_exception.namespaces, '', 5)))
 
-def validate_single_xml(xml):
+def validate_single_xml(xml_filename):
     """Validate an individual xml. Note if messages are generated from multiple XMLs, the validation will also be performed on the 'combined' xml"""
     # start by validating each xml individually
     script_dir = os.path.dirname(__file__)
     base_url = os.path.abspath(os.path.join(script_dir, 'schema'))
     schema = xmlschema.XMLSchema11(os.path.join(base_url, 'mavlink_schema.xsd'), base_url=base_url)
 
+    # attempt to read the xml directly into a dictionary
     try:
-        schema.validate(xml)
-    except xmlschema.validators.exceptions.XMLSchemaValidationError as e:
-        report_schama_validation_error(e, xml)
-        quit()
-    log.debug("{} passed validation".format(xml))
+        xml_dict = schema.to_dict(xml_filename)
+    except ElementTree.ParseError as parseErr:
+        log.error("Failed to parse '{}': {}".format(os.path.relpath(xml_filename), parseErr))
+        return None
+    except xmlschema.validators.exceptions.XMLSchemaValidationError as xsve:
+        report_schama_validation_error(xsve, xml_filename)
+        return None
+    log.debug("{} passed validation".format(xml_filename))
+    return xml_dict
 
-
-# def validate(xmls):
+def validate(xmls):
+    validated_xmls = []
+    for xml_filename in xmls:
+        validated_imported_xml = validate_single_xml(xml_filename)
+        if validated_imported_xml is None:
+            return None
+        validated_xmls.append(validated_imported_xml)
+    return validated_xmls
