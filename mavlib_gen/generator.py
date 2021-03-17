@@ -1,42 +1,18 @@
 ################################################################################
 # \file generator
 #
-# top-level generator API
+# top-level generator api
 #
 # Copyright (c) 2021 len0rd
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# All rights reserved.
+# This file is distributed under the terms of the MIT License.
+# See the file 'LICENSE' in the root directory of the present
+# distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 import os, errno
 import logging
-import validator
-
-class MessageDefinition(object):
-    """Model class representing a single message definition XML"""
-
-    def __init__(self, filename):
-        # verify the file exists
-        if not os.path.isfile(filename):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
-        self.filename = filename
-
-
+from .validator import MavlinkXmlValidator
 
 def generate(xmls, output_lang, output_location):
     """
@@ -47,8 +23,11 @@ def generate(xmls, output_lang, output_location):
     if not isinstance(xmls, list):
         xmls = [xmls]
 
+    validator = MavlinkXmlValidator()
+
     xml_dicts = validator.validate(xmls)
     if xml_dicts is None:
+        print("Failed!")
         return False # failed to generate
 
 if __name__ == '__main__':

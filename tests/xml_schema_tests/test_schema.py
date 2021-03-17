@@ -1,7 +1,7 @@
 import unittest, os
 import xmlschema
 
-class TestXmlSchemaValidator(unittest.TestCase):
+class TestXmlSchema(unittest.TestCase):
 
     def setUp(self):
         self.script_dir = os.path.dirname(__file__)
@@ -9,7 +9,7 @@ class TestXmlSchemaValidator(unittest.TestCase):
         self.schema = xmlschema.XMLSchema11(os.path.join(base_url, 'mavlink_schema.xsd'), base_url=base_url)
 
     def test_failure_cases(self):
-        """Test cases where the schema validator should produce an error"""
+        """Test cases where the schema should produce an error"""
         test_case_dir = os.path.join(self.script_dir, 'test_cases', 'fail')
         test_case_files = [f for f in os.listdir(test_case_dir) if os.path.isfile(os.path.join(test_case_dir, f))]
 
@@ -20,7 +20,7 @@ class TestXmlSchemaValidator(unittest.TestCase):
                 self.fail('Test case file "{}" passed schema validation when it should have failed!'.format(test_file))
 
     def test_successful_cases(self):
-        """Test cases where the schema validator should succeed"""
+        """Test cases where the schema should succeed"""
         test_case_dir = os.path.join(self.script_dir, 'test_cases', 'pass')
         test_case_files = [f for f in os.listdir(test_case_dir) if os.path.isfile(os.path.join(test_case_dir, f))]
 

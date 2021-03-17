@@ -1,1 +1,4 @@
+# used to verify input message definition xmls follow the mavlink schema
 xmlschema==1.5.2
+# used to ensure valid include trees from message definition xmls
+networkx==2.5
