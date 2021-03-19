@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mavlink>
+    <include>root.xml</include>
     <messages>
         <message id="1" name="TEST">
             <description>This is the standard test message</description>

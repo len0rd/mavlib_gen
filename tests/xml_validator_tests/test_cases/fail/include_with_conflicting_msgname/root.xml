@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mavlink>
+    <messages>
+        <message id="4" name="TEST">
+            <description>Only the message id here conflicts</description>
+            <field name="testfield4" type="int8_t">Test field</field>
+            <field name="testfield5" type="uint8_t">Test field</field>
+            <field name="testfield6" type="int16_t">Test field</field>
+        </message>
+        <message id="5" name="TEST3">
+            <description>This is the standard test message</description>
+            <field name="testfield7" type="int8_t">Test field</field>
+        </message>
+    </messages>
+</mavlink>

@@ -17,6 +17,7 @@ from xml.etree import ElementTree
 import networkx as netx
 from .model.message_def_xml import MessageDefXml
 from typing import List, Dict
+from abc import ABC, abstractmethod
 
 # return codes from MavlinkXmlValidator.is_msg_def_unique
 MSG_DEF_UNIQUE = 1
@@ -25,12 +26,91 @@ MSG_DEF_DUPLICATE_ERR = -1
 
 log = logging.getLogger(__name__)
 
+class AbstractXmlValidator(ABC):
+    """
+    Abstract base class for an XML Validator that can be extended by 3rd parties
+    to insert custom validation logic into the mavlink generation process
+    """
+
+    @abstractmethod
+    def validate(self, xmls : Dict[str, MessageDefXml], include_graph : netx.DiGraph) -> bool:
+        """
+        Run the custom validator, return True if the xmls pass your validation
+        rules, otherwise False
+
+        Note: for your custom validator to be run, you must add it to the run list
+            via @ref MavlinkXmlValidator.add_custom_validator
+        """
+        pass
+
+class UniqueMsgIdNameAcrossDependencies(AbstractXmlValidator):
+    """
+    Verify all message ids and names are unique across an XML + its dependencies
+    Note: unique message ids are verified on a per-xml basis by the schema
+    @ref MavlinkXmlValidator adds and runs this validator automatically
+    """
+
+    def validate(self, msg_defs : Dict[str, MessageDefXml], include_graph : netx.DiGraph) -> bool:
+        # for each xml
+        for fname, mdef in msg_defs.items():
+            processed = [] # keep a list of the dialect names processed for better error reporting
+            if mdef.dependencies is None:
+                # no dependencies for this xml to check against
+                continue
+            if 'messages' in mdef.xml_dict and 'message' in mdef.xml_dict['messages']:
+                base_msgid_set = {msg['@id'] for msg in mdef.xml_dict['messages']['message']}
+                base_msgname_set = {msg['@name'] for msg in mdef.xml_dict['messages']['message']}
+            else:
+                base_msgid_set = set()
+                base_msgname_set = set()
+            processed.append(fname)
+            for dep in mdef.dependencies:
+                xml_dep = msg_defs[dep]
+                if 'messages' in xml_dep.xml_dict and 'message' in xml_dep.xml_dict['messages']:
+                    dep_msgid_set = {msg['@id'] for msg in xml_dep.xml_dict['messages']['message']}
+                    dep_msgname_set = {msg['@name'] for msg in xml_dep.xml_dict['messages']['message']}
+                else:
+                    # this dependency has no messages/msg_ids, good to continue
+                    continue
+                # check for id or name intersections
+                conflicting_ids = base_msgid_set.intersection(dep_msgid_set)
+                if len(conflicting_ids) > 0:
+                    log.error("One of '{}'s dependencies has a conflicting message id with one of its other dependencies (or with '{}' itself)"
+                        .format(fname, fname))
+                    log.error("Conflicting id(s): {}. This conflict can be found in {} and one of the following: {}"
+                        .format(conflicting_ids, xml_dep.filename, processed))
+                    return False
+                conflicting_names = base_msgname_set.intersection(dep_msgname_set)
+                if len(conflicting_names) > 0:
+                    log.error("One of '{}'s dependencies has a conflicting message name with one of its other dependencies (or with '{}' itself)"
+                        .format(fname, fname))
+                    log.error("Conflicting name(s): {}. This conflict can be found in {} and one of the following: {}"
+                        .format(conflicting_names, xml_dep.filename, processed))
+                    return False
+                # otherwise, no conflicts
+                base_msgid_set.update(dep_msgid_set)
+                base_msgname_set.update(dep_msgname_set)
+
+                processed.append(xml_dep.filename)
+        return True
+
 class MavlinkXmlValidator(object):
+    """
+    Main class used to read in XMLs, verify they adhere to the mavlink schema and
+    expand their includes
+    """
 
     def __init__(self):
         script_dir = os.path.dirname(__file__)
         base_url = os.path.abspath(os.path.join(script_dir, 'schema'))
         self.schema = xmlschema.XMLSchema11(os.path.join(base_url, 'mavlink_schema.xsd'), base_url=base_url)
+        self.custom_validators = []
+        self.msgid_name_validator = UniqueMsgIdNameAcrossDependencies()
+        self.custom_validators.append(self.msgid_name_validator)
+
+    def add_validator(self, custom_validator : AbstractXmlValidator):
+        """Add a custom validator to the list of validators to be run when @ref validate is called"""
+        self.custom_validators.append(custom_validator)
 
     def validate_single_xml(self, xml_filename : str) -> MessageDefXml:
         """
@@ -201,5 +281,14 @@ class MavlinkXmlValidator(object):
         validated_xmls = result[0]
         include_dag = result[1]
 
+        # generate list of all dependencies for each xml
+        self.generate_dependency_list(validated_xmls, include_dag)
 
+        # run through all the attached custom validators
+        for custom_validator in self.custom_validators:
+            if not custom_validator.validate(validated_xmls, include_dag):
+                log.error("{} failed validation".format(type(custom_validator).__name__))
+                return None
+
+        # successfully read, expanded and validated!
         return validated_xmls
