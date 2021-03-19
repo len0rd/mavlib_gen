@@ -11,6 +11,7 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 import os
+from typing import List
 
 class MessageDefXml(object):
 
@@ -24,3 +25,12 @@ class MessageDefXml(object):
         self.absolute_path = absolute_path
         self.filename = os.path.basename(absolute_path)
         self.xml_dict = xml_dict
+        self.dependencies = None
+
+    def set_dependencies(self, deps : List[str]):
+        """
+        Update this objects list of dependencies.
+        The dependency list is a list of all xml message definition files
+        this xml directly or indirectly includes
+        """
+        self.dependencies = deps

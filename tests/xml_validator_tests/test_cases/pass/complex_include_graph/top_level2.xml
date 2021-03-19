@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    Include graph for this test looks like the following:
+    Note: arrows are used as x -> y == x includes y
+
+    top_level  -> m1  -> m4  -> r2
+              |-> m2  -^       ^
+              |    ^           |
+    top_lvl2 -|-> m5  -> r1    |
+              |-> m3  -^ - - -^
+    
+-->
+<mavlink>
+    <include>mid_includes/m5.xml</include>
+</mavlink>
