@@ -13,7 +13,7 @@
 import os, logging
 from .generator_base import AbstractLangGenerator
 from typing import Dict
-from ..model.message_def_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
+from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
 
 log = logging.getLogger(__name__)
 

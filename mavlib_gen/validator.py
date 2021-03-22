@@ -15,7 +15,7 @@ import os, logging, re
 import xmlschema
 from xml.etree import ElementTree
 import networkx as netx
-from .model.message_def_xml import MavlinkXmlFile, MavlinkXml
+from .model.mavlink_xml import MavlinkXmlFile, MavlinkXml
 from typing import List, Dict
 from abc import ABC, abstractmethod
 

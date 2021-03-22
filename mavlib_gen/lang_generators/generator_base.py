@@ -11,7 +11,7 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 from abc import ABC, abstractmethod
-from ..model.message_def_xml import MavlinkXmlFile
+from ..model.mavlink_xml import MavlinkXmlFile
 from typing import Dict
 
 class AbstractLangGenerator(ABC):
