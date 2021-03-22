@@ -13,11 +13,9 @@ class TestCLangGenerator(unittest.TestCase):
         simple_xml = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'simple_msg.xml'))
         result = self.validator.validate([simple_xml])
         self.assertIsNotNone(result)
-        print(os.path.dirname(__file__))
-        print("time to generate")
 
         gen_result = self.cgen.generate(result, os.path.dirname(__file__))
-        print(gen_result)
+        self.assertTrue(gen_result)
 
 
 if __name__ == "__main__":

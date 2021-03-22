@@ -11,7 +11,7 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 from abc import ABC, abstractmethod
-from ..model.message_def_xml import MessageDefXml
+from ..model.message_def_xml import MavlinkXmlFile
 from typing import Dict
 
 class AbstractLangGenerator(ABC):
@@ -27,7 +27,7 @@ class AbstractLangGenerator(ABC):
         """
         pass
 
-    def generate(self, validated_xmls : Dict[str, MessageDefXml], output_dir : str) -> bool:
+    def generate(self, validated_xmls : Dict[str, MavlinkXmlFile], output_dir : str) -> bool:
         """
         Top-level generate method. Generates mavlink messages in the
         implemented language from the provided dialect file

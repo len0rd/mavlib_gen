@@ -13,6 +13,7 @@
 import os, errno
 import logging
 from .validator import MavlinkXmlValidator
+from .lang_generators.generator_base import AbstractLangGenerator
 
 def generate(xmls, output_lang, output_location):
     """

@@ -14,9 +14,9 @@ class TestValidateSingleXml(unittest.TestCase):
         self.assertIsNone(self.validator.validate_single_xml("bogus/file.xml"))
 
     def test_msg_def_duplicate_err(self):
-        mdefa = MessageDefXml('/test/path1/common.xml', {})
-        mdefb = MessageDefXml('/test/path2/asdf.xml', {})
-        mdefc = MessageDefXml('/test/path2/common.xml', {})
+        mdefa = MavlinkXmlFile('/test/path1/common.xml', {})
+        mdefb = MavlinkXmlFile('/test/path2/asdf.xml', {})
+        mdefc = MavlinkXmlFile('/test/path2/common.xml', {})
         other_defs = {
             mdefb.filename: mdefb,
             mdefc.filename: mdefc
@@ -24,9 +24,9 @@ class TestValidateSingleXml(unittest.TestCase):
         self.assertEqual(MSG_DEF_DUPLICATE_ERR, self.validator.is_msg_def_unique(mdefa, other_defs))
 
     def test_msg_def_duplicate(self):
-        mdefa = MessageDefXml('/test/path/common.xml', {})
-        mdefb = MessageDefXml('/test/path2/asdf.xml', {})
-        mdefc = MessageDefXml('/test/path/common.xml', {})
+        mdefa = MavlinkXmlFile('/test/path/common.xml', {})
+        mdefb = MavlinkXmlFile('/test/path2/asdf.xml', {})
+        mdefc = MavlinkXmlFile('/test/path/common.xml', {})
         other_defs = {
             mdefb.filename: mdefb,
             mdefc.filename: mdefc
@@ -34,9 +34,9 @@ class TestValidateSingleXml(unittest.TestCase):
         self.assertEqual(MSG_DEF_DUPLICATE, self.validator.is_msg_def_unique(mdefa, other_defs))
 
     def test_msg_def_unique(self):
-        mdefa = MessageDefXml('/test/path/common.xml', {})
-        mdefb = MessageDefXml('/test/path/asdf.xml', {})
-        mdefc = MessageDefXml('/test/path/ghjk.xml', {})
+        mdefa = MavlinkXmlFile('/test/path/common.xml', {})
+        mdefb = MavlinkXmlFile('/test/path/asdf.xml', {})
+        mdefc = MavlinkXmlFile('/test/path/ghjk.xml', {})
         other_defs = {
             mdefb.filename: mdefb,
             mdefc.filename: mdefc
