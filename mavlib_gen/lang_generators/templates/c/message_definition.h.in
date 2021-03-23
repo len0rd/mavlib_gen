@@ -13,6 +13,14 @@
 {fields}
 }}{struct_packed_def_end} mavlink_{msg_name_lower}_t;
 
+#ifdef MAVLINK_USE_MSG_INFO
+
+#endif
+
+#ifdef MAVLINK_USE_MSG_METADATA
+#define MAVLINK_MSG_INFO_{msg_name_upper} {{{msg_id}, 0x{crc_extra:02x}, {msg_len}}}
+#endif
+
 
 
 #endif /* __MAVLINK_MSG_{msg_name_upper}_H__ */

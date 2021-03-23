@@ -2,3 +2,5 @@
 xmlschema==1.5.2
 # used to ensure valid include trees from message definition xmls
 networkx==2.5
+# used for mavlink crc calculation
+crcmod==1.7
