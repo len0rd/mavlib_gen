@@ -101,7 +101,7 @@ class CLangGenerator(AbstractLangGenerator):
                 struct_packed_def_end='',
                 fields=self.__generate_msg_field_strings(msg_def),
                 crc_extra=msg_def.crc_extra,
-                msg_len=msg_def.length
+                msg_len=msg_def.byte_length,
             ))
 
         return True
@@ -115,7 +115,7 @@ class CLangGenerator(AbstractLangGenerator):
             for field in msg_def.sorted_fields:
                 all_fields += self.__generate_single_field_string(field) + '\n'
         if msg_def.has_extensions or len(msg_def.extension_fields) > 0:
-            all_fields += "// extension fields:\n"
+            all_fields += "    // extension fields:\n"
             for field in msg_def.extension_fields:
                 all_fields += self.__generate_single_field_string(field) + '\n'
 

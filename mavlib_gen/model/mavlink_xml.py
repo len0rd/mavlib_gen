@@ -17,68 +17,11 @@ import crcmod
 
 log = logging.getLogger(__name__)
 
-class MavlinkXml(object):
+# class MavlinkXmlEnumValueParam(object):
 
-    def __init__(self, mavlink_data_elem : DataElement):
-        self.includes = []
-        self.messages = []
-        self.enums = []
-        self.version = None
-        self.dialect = None
+# class MavlinkXmlEnumValue(object):
 
-        TAG_MAP = {
-            'messages' : (lambda mav_xml, data_elem: mav_xml.__enumerate_messages(data_elem)),
-            'enums'    : (lambda mav_xml, data_elem: mav_xml.__enumerate_enums(data_elem)),
-            'include'  : (lambda mav_xml, data_elem: mav_xml.includes.append(str(data_elem.text))),
-            'version'  : (lambda mav_xml, data_elem: setattr(mav_xml, 'version', str(data_elem.text))),
-            'dialect'  : (lambda mav_xml, data_elem: setattr(mav_xml, 'dialect', str(data_elem.text))),
-        }
-
-        for child in mavlink_data_elem:
-            if not child.tag in TAG_MAP:
-                log.error("Unknown element in MavlinkXml : {}".format(child.tag))
-            else:
-                TAG_MAP[child.tag](self, child)
-
-    def __enumerate_messages(self, messages_data_elem : DataElement):
-        """Used during construction to import message definitions into the object"""
-        for child in messages_data_elem:
-            self.messages.append(MavlinkXmlMessage(child))
-
-    def __enumerate_enums(self, enums_data_elem):
-        """Used during construction to import enum definitions into the object"""
-        return False
-
-    def __repr__(self):
-        rep = "messages:\n"
-        for msg in self.messages:
-            rep += " {}\n".format(msg.__repr__())
-        return rep
-
-class MavlinkXmlFile(object):
-    """
-    Top-level model object to contain information on a mavlink xml definition
-    file including its parsed/validated @ref MavlinkXml object
-    """
-
-    def __init__(self, absolute_path, xml : MavlinkXml):
-        """
-        Construct a Message Definition xml object. These objects must contain
-        their base filename (ie: 'common.xml'), the absolute path to the file
-        ('/home/len0rd/common.xml') and the schema-validated xml object
-        """
-        self.absolute_path = absolute_path
-        self.filename = os.path.basename(absolute_path)
-        self.xml = xml
-        self.dependencies = None
-
-    def set_dependencies(self, deps : List[str]):
-        """
-        Update this objects list of dependencies.
-        The dependency list is a list of all xml message definition files
-        this xml directly or indirectly includes
-        """
-        self.dependencies = deps
+# class MavlinkXmlEnum(object):
 
 class MavlinkXmlMessageField(object):
 
@@ -159,7 +102,7 @@ class MavlinkXmlMessage(object):
         self._length = 0
 
         TAG_MAP = {
-            'description' : (lambda msg, data_elem : setattr(msg, '_`description', str(data_elem.text))),
+            'description' : (lambda msg, data_elem : setattr(msg, '_description', str(data_elem.text))),
             'extensions'  : (lambda msg, data_elem : setattr(msg, 'has_extensions', True)),
             'field'       : (lambda msg, data_elem : msg.__append_field(data_elem)),
             # TODO: deprecated and wip elements
@@ -224,7 +167,7 @@ class MavlinkXmlMessage(object):
         return self._crc_extra
 
     @property
-    def length(self) -> int:
+    def byte_length(self) -> int:
         """The maximum length of the message payload (does not include the header) in bytes"""
         return self._length
 
@@ -272,10 +215,66 @@ class MavlinkXmlMessage(object):
         rep += ")"
         return rep
 
-# class MavlinkXmlEnum(object):
+class MavlinkXml(object):
 
-# class MavlinkXmlEnumValue(object):
+    def __init__(self, mavlink_data_elem : DataElement):
+        self.includes = []
+        self.messages = []
+        self.enums = []
+        self.version = None
+        self.dialect = None
 
-# class MavlinkXmlEnumValueParam(object):
+        TAG_MAP = {
+            'messages' : (lambda mav_xml, data_elem: mav_xml.__enumerate_messages(data_elem)),
+            'enums'    : (lambda mav_xml, data_elem: mav_xml.__enumerate_enums(data_elem)),
+            'include'  : (lambda mav_xml, data_elem: mav_xml.includes.append(str(data_elem.text))),
+            'version'  : (lambda mav_xml, data_elem: setattr(mav_xml, 'version', str(data_elem.text))),
+            'dialect'  : (lambda mav_xml, data_elem: setattr(mav_xml, 'dialect', str(data_elem.text))),
+        }
 
+        for child in mavlink_data_elem:
+            if not child.tag in TAG_MAP:
+                log.error("Unknown element in MavlinkXml : {}".format(child.tag))
+            else:
+                TAG_MAP[child.tag](self, child)
+
+    def __enumerate_messages(self, messages_data_elem : DataElement):
+        """Used during construction to import message definitions into the object"""
+        for child in messages_data_elem:
+            self.messages.append(MavlinkXmlMessage(child))
+
+    def __enumerate_enums(self, enums_data_elem):
+        """Used during construction to import enum definitions into the object"""
+        return False
+
+    def __repr__(self):
+        rep = "messages:\n"
+        for msg in self.messages:
+            rep += " {}\n".format(msg.__repr__())
+        return rep
+
+class MavlinkXmlFile(object):
+    """
+    Top-level model object to contain information on a mavlink xml definition
+    file including its parsed/validated @ref MavlinkXml object
+    """
+
+    def __init__(self, absolute_path, xml : MavlinkXml):
+        """
+        Construct a Message Definition xml object. These objects must contain
+        their base filename (ie: 'common.xml'), the absolute path to the file
+        ('/home/len0rd/common.xml') and the schema-validated xml object
+        """
+        self.absolute_path = absolute_path
+        self.filename = os.path.basename(absolute_path)
+        self.xml = xml
+        self.dependencies = None
+
+    def set_dependencies(self, deps : List[str]):
+        """
+        Update this objects list of dependencies.
+        The dependency list is a list of all xml message definition files
+        this xml directly or indirectly includes
+        """
+        self.dependencies = deps
 
