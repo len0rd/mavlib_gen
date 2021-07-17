@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mavlink>
+    <enums>
+        <enum name="TEST_ENUM_NAME">
+            <description>Test enum description</description>
+            <entry value="1" name="TEST_ENUM_ENTRY_1">
+                <description>Test enum entry description</description>
+                <param index="1">Test enum entry param description</param>
+            </entry>
+            <entry value="0xbeef" name="TEST_HEX_ENUM_ENTRY_NAME">
+                <description>Test enum hex entry</description>
+            </entry>
+        </enum>
+    </enums>
+</mavlink>

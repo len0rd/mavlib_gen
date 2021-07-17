@@ -17,11 +17,136 @@ import crcmod
 
 log = logging.getLogger(__name__)
 
-# class MavlinkXmlEnumValueParam(object):
+class MavlinkXmlEnumEntryParam(object):
+    """Represents a 'param' child within a mavlink XML enum entry"""
 
-# class MavlinkXmlEnumValue(object):
+    def __init__(self, param_data_elem : DataElement):
+        self._index = None
+        self._description = None
+        self._label = None
+        self._minValue = None
+        self._maxValue = None
+        # per schema, if not declared reserved is implicitly False
+        self._reserved = False
+        self._default = None
+        self._units = None
 
-# class MavlinkXmlEnum(object):
+        if param_data_elem.text is not None and len(str(param_data_elem.text)) > 0:
+            self._description = str(param_data_elem.text)
+
+        for k,v in param_data_elem.attrib.items():
+            setattr(self, '_' + k, v)
+
+        self._index = int(self._index)
+
+    @property
+    def index(self) -> int:
+        return self._index
+
+    @property
+    def description(self) -> str:
+        """description string attached to the param"""
+        return self._description
+
+    # TODO: add other param values here as needed
+
+class MavlinkXmlEnumEntry(object):
+    """Represents an Enum entry/value within a mavlink XML enum"""
+
+    def __init__(self, entry_data_elem : DataElement):
+        self._params = []
+        self._name = None
+        self._value = None
+        self._description = None
+
+        TAG_MAP = {
+            'description' : (lambda entry, data_elem : setattr(entry, '_description', str(data_elem.text))),
+            'param'       : (lambda entry, data_elem : entry.__append_param(data_elem)),
+        }
+
+        for child in entry_data_elem:
+            if not child.tag in TAG_MAP:
+                log.error("Unknown element in MavlinkXmlEnumEntry: {}".format(child.tag))
+            else:
+                TAG_MAP[child.tag](self, child)
+
+        for k,v in entry_data_elem.attrib.items():
+            setattr(self, '_' + k, v)
+
+        self._name  = str(self._name)
+        # store value as a string so its generated to look the same as the definition (useful for hex numbers)
+        # the schema validates its a good value
+        self._value = str(self._value)
+
+    @property
+    def name(self) -> str:
+        """the unique enum entry name"""
+        return self._name
+
+    @property
+    def value(self) -> str:
+        """
+        Value of the enum. Returned as a string so it will look identical to its declaration
+        in the message definition. Useful for hex numbers
+        """
+        return self._value
+
+    @property
+    def description(self) -> str:
+        """description string attached to the enum entry"""
+        return self._description
+
+    @property
+    def params(self) -> List[MavlinkXmlEnumEntryParam]:
+        """List of params attached to this entry in the order theyre defined, if any. Defaults to empty list"""
+        return self._params
+
+    def __append_param(self, param_data_elem : DataElement):
+        """Append a new param to this enum entry's list of params"""
+        self._params.append(MavlinkXmlEnumEntryParam(param_data_elem))
+
+class MavlinkXmlEnum(object):
+    """Represents a single enum as defined in a mavlink XML"""
+
+    def __init__(self, enum_data_elem : DataElement):
+        self._entries = []
+        self._name = None
+        self._description = None
+
+        TAG_MAP = {
+            'description' : (lambda enum, data_elem : setattr(enum, '_description', str(data_elem.text))),
+            'entry'       : (lambda enum, data_elem : enum.__append_entry(data_elem)),
+        }
+
+        for child in enum_data_elem:
+            if not child.tag in TAG_MAP:
+                log.error("Unknown element in MavlinkXmlEnum: {}".format(child.tag))
+            else:
+                TAG_MAP[child.tag](self, child)
+
+        for k,v in enum_data_elem.attrib.items():
+            setattr(self, '_' + k, v)
+
+        self._name = str(self._name)
+
+    @property
+    def name(self) -> str:
+        """the unique enum name"""
+        return self._name
+
+    @property
+    def description(self) -> str:
+        """description string attached to the enum"""
+        return self._description
+
+    @property
+    def entries(self) -> List[MavlinkXmlEnumEntry]:
+        """List of enum entries in the mavlink enum in the order they're defined"""
+        return self._entries
+
+    def __append_entry(self, entry_data_elem : DataElement):
+        """Append a new entry to this enums list of entries"""
+        self._entries.append(MavlinkXmlEnumEntry(entry_data_elem))
 
 class MavlinkXmlMessageField(object):
 
@@ -79,7 +204,7 @@ class MavlinkXmlMessageField(object):
     def __repr__(self):
         rep = "Field({}, type={}".format(self.name, self.type)
 
-        no_append_attrs = ['name', 'type', ]#'description']
+        no_append_attrs = ['name', 'type', ] #'description']
         for k,v in self.__dict__.items():
             if not k in no_append_attrs:
                 rep += ", {}={}".format(k,v)
@@ -219,8 +344,8 @@ class MavlinkXml(object):
 
     def __init__(self, mavlink_data_elem : DataElement):
         self.includes = []
-        self.messages = []
-        self.enums = []
+        self._messages = []
+        self._enums = []
         self.version = None
         self.dialect = None
 
@@ -238,14 +363,25 @@ class MavlinkXml(object):
             else:
                 TAG_MAP[child.tag](self, child)
 
+    @property
+    def messages(self) -> List[MavlinkXmlMessage]:
+        """List of all messages contained in this mavlink dialect xml"""
+        return self._messages
+
+    @property
+    def enums(self) -> List[MavlinkXmlEnum]:
+        """List of all enums contained in this mavlink dialect xml"""
+        return self._enums
+
     def __enumerate_messages(self, messages_data_elem : DataElement):
         """Used during construction to import message definitions into the object"""
         for child in messages_data_elem:
-            self.messages.append(MavlinkXmlMessage(child))
+            self._messages.append(MavlinkXmlMessage(child))
 
     def __enumerate_enums(self, enums_data_elem):
         """Used during construction to import enum definitions into the object"""
-        return False
+        for child in enums_data_elem:
+            self._enums.append(MavlinkXmlEnum(child))
 
     def __repr__(self):
         rep = "messages:\n"
