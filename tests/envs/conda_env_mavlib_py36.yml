@@ -1,8 +1,0 @@
-name: mavlib_gen36
-channels:
-  - defaults
-dependencies:
-  - python=3.6
-  - pip
-  - pip:
-    - -r ../../requirements.txt
