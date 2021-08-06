@@ -14,7 +14,9 @@ class TestCLangGenerator(unittest.TestCase):
         result = self.validator.validate([simple_xml])
         self.assertIsNotNone(result)
 
-        gen_result = self.cgen.generate(result, os.path.dirname(__file__))
+        out_dir = os.path.join(os.path.dirname(__file__), 'c_test_out')
+
+        gen_result = self.cgen.generate(result, out_dir)
         self.assertTrue(gen_result)
 
 
