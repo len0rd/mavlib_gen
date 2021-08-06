@@ -1,6 +1,6 @@
 # used to verify input message definition xmls follow the mavlink schema
-xmlschema==1.5.2
+xmlschema>=1.5.2
 # used to ensure valid include trees from message definition xmls
-networkx==2.5
+networkx>=2.5
 # used for mavlink crc calculation
-crcmod==1.7
+crcmod>=1.7
