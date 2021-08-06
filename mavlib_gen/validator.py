@@ -11,7 +11,9 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 #################################################################################
-import os, logging, re
+import os
+import logging
+import re
 import xmlschema
 from xml.etree import ElementTree
 import networkx as netx
@@ -25,6 +27,7 @@ MSG_DEF_DUPLICATE = 0
 MSG_DEF_DUPLICATE_ERR = -1
 
 log = logging.getLogger(__name__)
+
 
 class AbstractXmlValidator(ABC):
     """
@@ -43,6 +46,7 @@ class AbstractXmlValidator(ABC):
         """
         pass
 
+
 class UniqueMsgIdNameAcrossDependencies(AbstractXmlValidator):
     """
     Verify all message ids and names are unique across an XML + its dependencies
@@ -53,7 +57,7 @@ class UniqueMsgIdNameAcrossDependencies(AbstractXmlValidator):
     def validate(self, msg_defs : Dict[str, MavlinkXmlFile], include_graph : netx.DiGraph) -> bool:
         # for each xml
         for fname, mdef in msg_defs.items():
-            processed = [] # keep a list of the dialect names processed for better error reporting
+            processed = []  # keep a list of the dialect names processed for better error reporting
             if mdef.dependencies is None:
                 # no dependencies for this xml to check against
                 continue
@@ -75,15 +79,15 @@ class UniqueMsgIdNameAcrossDependencies(AbstractXmlValidator):
                 # check for id or name intersections
                 conflicting_ids = base_msgid_set.intersection(dep_msgid_set)
                 if len(conflicting_ids) > 0:
-                    log.error("One of '{}'s dependencies has a conflicting message id with one of its other dependencies (or with '{}' itself)"
-                        .format(fname, fname))
+                    log.error("One of '{}'s dependencies has a conflicting message id with one of its other "
+                        "dependencies (or with '{}' itself)".format(fname, fname))
                     log.error("Conflicting id(s): {}. This conflict can be found in {} and one of the following: {}"
                         .format(conflicting_ids, dependency_xml_file.filename, processed))
                     return False
                 conflicting_names = base_msgname_set.intersection(dep_msgname_set)
                 if len(conflicting_names) > 0:
-                    log.error("One of '{}'s dependencies has a conflicting message name with one of its other dependencies (or with '{}' itself)"
-                        .format(fname, fname))
+                    log.error("One of '{}'s dependencies has a conflicting message name with one of its other "
+                        "dependencies (or with '{}' itself)".format(fname, fname))
                     log.error("Conflicting name(s): {}. This conflict can be found in {} and one of the following: {}"
                         .format(conflicting_names, dependency_xml_file.filename, processed))
                     return False
@@ -94,6 +98,7 @@ class UniqueMsgIdNameAcrossDependencies(AbstractXmlValidator):
                 processed.append(dependency_xml_file.filename)
         return True
 
+
 class MavlinkXmlValidator(object):
     """
     Main class used to read in XMLs, verify they adhere to the mavlink schema and
@@ -103,12 +108,13 @@ class MavlinkXmlValidator(object):
     def __init__(self):
         script_dir = os.path.dirname(__file__)
         base_url = os.path.abspath(os.path.join(script_dir, 'schema'))
-        self.schema = xmlschema.XMLSchema11(os.path.join(base_url, 'mavlink_schema.xsd'), base_url=base_url, converter=xmlschema.DataElementConverter)
+        self.schema = xmlschema.XMLSchema11(os.path.join(base_url, 'mavlink_schema.xsd'),
+            base_url=base_url, converter=xmlschema.DataElementConverter)
         self.custom_validators = []
         self.msgid_name_validator = UniqueMsgIdNameAcrossDependencies()
         self.custom_validators.append(self.msgid_name_validator)
 
-    def add_validator(self, custom_validator : AbstractXmlValidator):
+    def add_validator(self, custom_validator : AbstractXmlValidator) -> None:
         """Add a custom validator to the list of validators to be run when @ref validate is called"""
         self.custom_validators.append(custom_validator)
 
@@ -124,7 +130,8 @@ class MavlinkXmlValidator(object):
         # attempt to read the xml directly into a dictionary
         try:
             xml_elem = self.schema.decode(xml_filename)
-            # translate into our model objects TODO: take care of this at the converter level so we dont need intermediate xml_elem
+            # translate into our model objects
+            # TODO: take care of this at the converter level so we dont need intermediate xml_elem
             xml_model = MavlinkXml(xml_elem)
         except ElementTree.ParseError as parseErr:
             log.error("Failed to parse '{}': {}".format(os.path.relpath(xml_filename), parseErr))
@@ -135,17 +142,19 @@ class MavlinkXmlValidator(object):
         log.debug("{} passed validation".format(xml_filename))
         return MavlinkXmlFile(os.path.abspath(xml_filename), xml_model)
 
-    def __report_schama_validation_error(self, validation_exception, xml_filename):
+    def __report_schama_validation_error(self, xsve : xmlschema.validators.exceptions.XMLSchemaValidationError,
+            xml_filename : str) -> None:
         """Helper method to report validation errors in a useful way that I like"""
         log.error("Validation of message definition file '{}' failed!".format(os.path.relpath(xml_filename)))
         reason = ""
-        if validation_exception.reason is not None:
-            reason += "Reason: {}".format(validation_exception.reason)
-        if validation_exception.path is not None:
-            reason += " At path '{}':".format(validation_exception.path)
+        if xsve.reason is not None:
+            reason += "Reason: {}".format(xsve.reason)
+        if xsve.path is not None:
+            reason += " At path '{}':".format(xsve.path)
         log.error(reason)
-        if xmlschema.etree.is_etree_element(validation_exception.elem):
-            log.error("\n{}".format(xmlschema.etree.etree_tostring(validation_exception.elem, validation_exception.namespaces, '', 5)))
+        if xmlschema.etree.is_etree_element(xsve.elem):
+            log.error("\n{}".format(xmlschema.etree.etree_tostring(
+                xsve.elem, xsve.namespaces, '', 5)))
 
     def is_msg_def_unique(self, msg_def : MavlinkXmlFile, other_msg_defs : Dict[str, MavlinkXmlFile]) -> int:
         """
@@ -156,8 +165,8 @@ class MavlinkXmlValidator(object):
         if msg_def.filename in other_msg_defs:
             if msg_def.absolute_path != other_msg_defs[msg_def.filename].absolute_path:
                 log.error("Non-identical include paths for message definition file '{}' ('{}' vs '{}')".format(
-                        other_msg_defs[msg_def.filename].filename, other_msg_defs[msg_def.filename].absolute_path,
-                        msg_def.absolute_path))
+                    other_msg_defs[msg_def.filename].filename, other_msg_defs[msg_def.filename].absolute_path,
+                    msg_def.absolute_path))
                 return MSG_DEF_DUPLICATE_ERR
             return MSG_DEF_DUPLICATE
         return MSG_DEF_UNIQUE
@@ -182,18 +191,22 @@ class MavlinkXmlValidator(object):
             xmls_to_expand = []
             for cur_dialect in current_xmls_to_expand:
                 log.debug("Expanding includes in dialect {}".format(cur_dialect))
-                if  len(validated_xmls[cur_dialect].xml.includes) == 0:
-                    # add the xml to the graph (this becomes important later when analyzing dependencies for generation)
+                if len(validated_xmls[cur_dialect].xml.includes) == 0:
+                    # add the xml to the graph (becomes important later when analyzing dependencies for generation)
                     include_graph.add_node(validated_xmls[cur_dialect].filename)
                 else:
                     for include_path in validated_xmls[cur_dialect].xml.includes:
-                        # per the mavlink schema definition, include tags are relative to the dialect file they are contained in
-                        # NOTE: include_path is split on unix or windows path separator to ensure the abs_include_path generated
-                        #       works for the current os
-                        split_include_path = re.split('[\\\/]', include_path)
-                        abs_include_path = os.path.abspath(os.path.join(os.path.dirname(validated_xmls[cur_dialect].absolute_path), *split_include_path))
+                        # per the mavlink schema definition, include tags are relative to the dialect file
+                        # they are contained in
+                        # NOTE: include_path is split on unix or windows path separator to ensure the
+                        #       abs_include_path generated works for the current os
+                        split_include_path = re.split(r'[\\\/]', include_path)
+                        abs_include_path = os.path.abspath(
+                            os.path.join(os.path.dirname(validated_xmls[cur_dialect].absolute_path),
+                                *split_include_path))
                         if not os.path.isfile(abs_include_path):
-                            log.error("Failed to resolve include '{}' in definition '{}' to a file".format(include_path, cur_dialect))
+                            log.error("Failed to resolve include '{}' in definition "
+                                "'{}' to a file".format(include_path, cur_dialect))
                             log.debug("  Expected absolute path that doesnt exist: '{}'".format(abs_include_path))
                             return None
 
@@ -201,7 +214,8 @@ class MavlinkXmlValidator(object):
                         dup_check_def = MavlinkXmlFile(abs_include_path, {})
                         uniqueness_result = self.is_msg_def_unique(dup_check_def, validated_xmls)
                         if uniqueness_result == MSG_DEF_DUPLICATE_ERR:
-                            log.error("Second non-identical include path originated from '{}' include tag in '{}'".format(include_path, cur_dialect))
+                            log.error("Second non-identical include path originated from '{}' include"
+                                " tag in '{}'".format(include_path, cur_dialect))
                             return None
                         elif uniqueness_result == MSG_DEF_DUPLICATE:
                             # This file has already been validated and added to the validated_xmls list.
@@ -214,18 +228,21 @@ class MavlinkXmlValidator(object):
                             validated_xmls[validated_xml.filename] = validated_xml
                             xmls_to_expand.append(validated_xml.filename)
                         else:
-                            raise ValueError("Unknown result {} from validator.is_msg_def_unique".format(uniqueness_result))
+                            raise ValueError("Unknown result {} from validator.is_msg_def_unique"
+                                .format(uniqueness_result))
 
                         log.debug("Create edge {} - {}".format(cur_dialect, dup_check_def.filename))
                         include_graph.add_edges_from([(cur_dialect, dup_check_def.filename)])
 
                         # confirm the DAG is still directed and acyclic (to circular dependencies) before proceeding
                         if not netx.is_directed_acyclic_graph(include_graph):
-                            log.error("Circular dependency detected involving '{}' and its included dialect '{}'".format(cur_dialect, dup_check_def.filename))
+                            log.error("Circular dependency detected involving '{}' and its included"
+                                " dialect '{}'".format(cur_dialect, dup_check_def.filename))
                             return None
         return validated_xmls, include_graph
 
-    def generate_dependency_list(self, validated_xmls : Dict[str, MavlinkXmlFile], include_graph : netx.DiGraph):
+    def generate_dependency_list(self, validated_xmls : Dict[str, MavlinkXmlFile],
+            include_graph : netx.DiGraph) -> None:
         """
         For each dialect xml, use the include graph to generate its list of dependencies.
         The resulting list of dependencies is the list of all xmls directly or indirectly included by the dialect.
@@ -238,7 +255,7 @@ class MavlinkXmlValidator(object):
             # a 'reachable_node' comes from a depth-first-search (dfs) of the graph and indicates all includes
             # that are directly or indirectly included by the root 'node'
             for reachable_node in netx.dfs_postorder_nodes(include_graph, source=node):
-                if reachable_node != node: # we know we're reachable from ourself
+                if reachable_node != node:  # we know we're reachable from ourself
                     includes.append(reachable_node)
             log.debug("{} uses the following includes: {}".format(node, includes))
             validated_xmls[node].set_dependencies(includes)

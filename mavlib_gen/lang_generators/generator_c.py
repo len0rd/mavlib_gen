@@ -10,12 +10,14 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os, logging
+import os
+import logging
 from .generator_base import AbstractLangGenerator
-from typing import Dict
+from typing import Dict, List
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
 
 log = logging.getLogger(__name__)
+
 
 class CLangGenerator(AbstractLangGenerator):
 
@@ -23,9 +25,11 @@ class CLangGenerator(AbstractLangGenerator):
         script_dir = os.path.dirname(__file__)
         self.template_dir = os.path.abspath(os.path.join(script_dir, 'templates', 'c'))
         self.msg_def_format = os.path.join(self.template_dir, 'message_definition.h.in')
+        self.dialect_msg_format = os.path.join(self.template_dir, 'dialect_msgs.h.in')
 
     DOC_COMMENT_PREPEND = ' * '
     FIELD_DOC_COMMENT_PREPEND = '    /// '
+    MSG_DEF_FILENAME_FORMAT = 'mavlink_msg_{}.h'
 
     def lang_name(self) -> str:
         return 'c'
@@ -38,7 +42,7 @@ class CLangGenerator(AbstractLangGenerator):
             print("create dir {}".format(output_dir))
             os.mkdir(output_dir)
 
-        for name, dialect_def in  validated_xmls.items():
+        for name, dialect_def in validated_xmls.items():
             successfully_generated = self.generate_single_xml(dialect_def, output_dir)
             if not successfully_generated:
                 log.error("C lang failed to generate for dialect {}".format(name))
@@ -50,11 +54,13 @@ class CLangGenerator(AbstractLangGenerator):
 
         # place generated files within a subdirectory of outdir. the subdirectory
         # is named based on the xml filename
-        subdir_name = dialect.filename
-        if subdir_name.endswith('.xml'):
-            subdir_name = subdir_name[:-4]
+        dialect_name = dialect.filename
+        if dialect_name.endswith('.xml'):
+            dialect_name = dialect_name[:-4]
 
-        gen_dir = os.path.abspath(os.path.join(outdir, subdir_name))
+        dialect_name_lower = dialect_name.lower()
+
+        gen_dir = os.path.abspath(os.path.join(outdir, dialect_name_lower))
         print("{} generating in {}".format(dialect.filename, gen_dir))
 
         if not os.path.exists(gen_dir) or not os.path.isdir(gen_dir):
@@ -63,15 +69,41 @@ class CLangGenerator(AbstractLangGenerator):
         xml = dialect.xml
         # first generate messages
         if len(xml.messages) > 0:
-            with open(self.msg_def_format) as mdef_format_file:
+            with open(self.msg_def_format, 'r') as mdef_format_file:
                 msg_def_format = mdef_format_file.read()
                 for msg_def in xml.messages:
                     if not self.__generate_msg(msg_def, msg_def_format, gen_dir):
                         # generating this message header failed
-                        print("msg gen failed")
+                        log.error("Failed to generate C header for message: '{}'. Exiting".format(msg_def.name))
                         return False
 
+            self.__generate_xml_msg_include(dialect_name_lower, xml.messages, gen_dir)
+
         return True
+
+    def __generate_xml_msg_include(self, dialect_name_lower : str, msgs : List[MavlinkXmlMessage],
+            outdir : str) -> None:
+        """
+        Generates the dialects message include file. This header is simply
+        a collection of include statements for all messages in the dialect
+        """
+        # generate an include string for each message
+        msg_c_includes = []
+        for msg_def in msgs:
+            msg_c_includes.append('#include "./{msg_filename}'.format(
+                msg_filename=self.MSG_DEF_FILENAME_FORMAT.format(msg_def.name.lower())))
+
+        # generate the XMLs message include. This .h includes all messages in this dialect ONLY
+        include_string_out = '\n'.join([msg_inc for msg_inc in msg_c_includes])
+        dialect_msgs_file_out = os.path.abspath(os.path.join(outdir, '{}_msgs.h'.format(dialect_name_lower)))
+        with open(self.dialect_msg_format, 'r') as dialect_msgs_format_file:
+            formatter = dialect_msgs_format_file.read()
+            with open(dialect_msgs_file_out, 'w') as dialect_msgs_out:
+                dialect_msgs_out.write(formatter.format(
+                    dialect_name_lower=dialect_name_lower,
+                    dialect_name_upper=dialect_name_lower.upper(),
+                    dialect_msg_includes=include_string_out,
+                ))
 
     def __generate_msg(self, msg_def : MavlinkXmlMessage, formatter : str, outdir : str) -> bool:
         """
@@ -88,7 +120,7 @@ class CLangGenerator(AbstractLangGenerator):
         else:
             formatted_msg_desc = self.DOC_COMMENT_PREPEND + msg_name_lower + ' struct definition'
 
-        mdef_file_out = os.path.abspath(os.path.join(outdir, 'mavlink_msg_{}.h'.format(msg_name_lower)))
+        mdef_file_out = os.path.abspath(os.path.join(outdir, self.MSG_DEF_FILENAME_FORMAT.format(msg_name_lower)))
 
         # write out the definition file
         with open(mdef_file_out, 'w') as out_file:
@@ -129,7 +161,8 @@ class CLangGenerator(AbstractLangGenerator):
         if field.description is not None:
             raw_field_desc = self.__generic_description_formatter(field.description)
             if len(raw_field_desc) > 0:
-                field_desc = self.FIELD_DOC_COMMENT_PREPEND + raw_field_desc.replace('\n', '\n' + self.FIELD_DOC_COMMENT_PREPEND) + '\n'
+                field_desc = self.FIELD_DOC_COMMENT_PREPEND + raw_field_desc.replace('\n',
+                    '\n' + self.FIELD_DOC_COMMENT_PREPEND) + '\n'
 
         field_str = MSG_FIELD_FORMATTER.format(
             field_desc=field_desc,

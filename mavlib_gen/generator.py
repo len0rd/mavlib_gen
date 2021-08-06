@@ -10,12 +10,13 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os, errno
 import logging
+from typing import List
 from .validator import MavlinkXmlValidator
-from .lang_generators.generator_base import AbstractLangGenerator
+# from .lang_generators.generator_base import AbstractLangGenerator
 
-def generate(xmls, output_lang, output_location):
+
+def generate(xmls : List[str], output_lang : str, output_location : str) -> bool:
     """
     Validate the provided xml(s) and generate into MAVLink code of output_lang in output_location
     @param xmls
@@ -29,7 +30,8 @@ def generate(xmls, output_lang, output_location):
     xml_dicts = validator.validate(xmls)
     if xml_dicts is None:
         print("Failed!")
-        return False # failed to generate
+        return False  # failed to generate
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

@@ -1,4 +1,4 @@
-name: Python unit tests
+name: Python style enforcement
 
 on:
   push:
@@ -13,17 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
-      matrix:
-        python-version: ['3.6', '3.7', '3.8', '3.9']
 
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.9
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
-    - name: Test
-      run: ./test.sh
+        pip install -r requirements.txt && pip install flake8 flake8-annotations
+    - name: Check style
+      run: flake8 --config .flake8 mavlib_gen

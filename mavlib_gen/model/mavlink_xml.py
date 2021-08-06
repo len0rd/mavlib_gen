@@ -10,12 +10,15 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os, logging, operator
+import os
+import logging
+import operator
 from typing import List
 from xmlschema.dataobjects import DataElement
 import crcmod
 
 log = logging.getLogger(__name__)
+
 
 class MavlinkXmlEnumEntryParam(object):
     """Represents a 'param' child within a mavlink XML enum entry"""
@@ -34,7 +37,7 @@ class MavlinkXmlEnumEntryParam(object):
         if param_data_elem.text is not None and len(str(param_data_elem.text)) > 0:
             self._description = str(param_data_elem.text)
 
-        for k,v in param_data_elem.attrib.items():
+        for k, v in param_data_elem.attrib.items():
             setattr(self, '_' + k, v)
 
         self._index = int(self._index)
@@ -50,6 +53,7 @@ class MavlinkXmlEnumEntryParam(object):
 
     # TODO: add other param values here as needed
 
+
 class MavlinkXmlEnumEntry(object):
     """Represents an Enum entry/value within a mavlink XML enum"""
 
@@ -60,20 +64,20 @@ class MavlinkXmlEnumEntry(object):
         self._description = None
 
         TAG_MAP = {
-            'description' : (lambda entry, data_elem : setattr(entry, '_description', str(data_elem.text))),
-            'param'       : (lambda entry, data_elem : entry.__append_param(data_elem)),
+            'description': (lambda entry, data_elem : setattr(entry, '_description', str(data_elem.text))),
+            'param'      : (lambda entry, data_elem : entry.__append_param(data_elem)),
         }
 
         for child in entry_data_elem:
-            if not child.tag in TAG_MAP:
+            if child.tag not in TAG_MAP:
                 log.error("Unknown element in MavlinkXmlEnumEntry: {}".format(child.tag))
             else:
                 TAG_MAP[child.tag](self, child)
 
-        for k,v in entry_data_elem.attrib.items():
+        for k, v in entry_data_elem.attrib.items():
             setattr(self, '_' + k, v)
 
-        self._name  = str(self._name)
+        self._name = str(self._name)
         # store value as a string so its generated to look the same as the definition (useful for hex numbers)
         # the schema validates its a good value
         self._value = str(self._value)
@@ -101,9 +105,10 @@ class MavlinkXmlEnumEntry(object):
         """List of params attached to this entry in the order theyre defined, if any. Defaults to empty list"""
         return self._params
 
-    def __append_param(self, param_data_elem : DataElement):
+    def __append_param(self, param_data_elem : DataElement) -> None:
         """Append a new param to this enum entry's list of params"""
         self._params.append(MavlinkXmlEnumEntryParam(param_data_elem))
+
 
 class MavlinkXmlEnum(object):
     """Represents a single enum as defined in a mavlink XML"""
@@ -119,12 +124,12 @@ class MavlinkXmlEnum(object):
         }
 
         for child in enum_data_elem:
-            if not child.tag in TAG_MAP:
+            if child.tag not in TAG_MAP:
                 log.error("Unknown element in MavlinkXmlEnum: {}".format(child.tag))
             else:
                 TAG_MAP[child.tag](self, child)
 
-        for k,v in enum_data_elem.attrib.items():
+        for k, v in enum_data_elem.attrib.items():
             setattr(self, '_' + k, v)
 
         self._name = str(self._name)
@@ -144,9 +149,10 @@ class MavlinkXmlEnum(object):
         """List of enum entries in the mavlink enum in the order they're defined"""
         return self._entries
 
-    def __append_entry(self, entry_data_elem : DataElement):
+    def __append_entry(self, entry_data_elem : DataElement) -> None:
         """Append a new entry to this enums list of entries"""
         self._entries.append(MavlinkXmlEnumEntry(entry_data_elem))
+
 
 class MavlinkXmlMessageField(object):
 
@@ -155,14 +161,14 @@ class MavlinkXmlMessageField(object):
         if self.description is not None:
             self.description = str(self.description).strip()
 
-        # set any element attributes as object attributes (should set 'name' and 'type' attributes for a field at a minimum)
-        # may also include 'units', 'instance', 'enum' etc
-        for k,v in field_elem.attrib.items():
+        # set any element attributes as object attributes (should set 'name' and 'type' attributes
+        # for a field at a minimum) may also include 'units', 'instance', 'enum' etc
+        for k, v in field_elem.attrib.items():
             setattr(self, k, v)
 
         self.__determine_type_attributes()
 
-    def __determine_type_attributes(self):
+    def __determine_type_attributes(self) -> None:
         """Determine meta-information about this field from its 'type' attribute"""
         BASE_TYPE_LEN_MAP = {
             'uint64_t' : 8,
@@ -186,7 +192,7 @@ class MavlinkXmlMessageField(object):
         arr_len = 0
         if arr_open_idx != -1:
             self.base_type = self.type[:arr_open_idx]
-            arr_len = int(self.type[arr_open_idx+1:-1])
+            arr_len = int(self.type[arr_open_idx + 1:-1])
 
         self.base_type_len = BASE_TYPE_LEN_MAP[self.base_type]
 
@@ -204,12 +210,13 @@ class MavlinkXmlMessageField(object):
     def __repr__(self):
         rep = "Field({}, type={}".format(self.name, self.type)
 
-        no_append_attrs = ['name', 'type', ] #'description']
-        for k,v in self.__dict__.items():
-            if not k in no_append_attrs:
-                rep += ", {}={}".format(k,v)
+        no_append_attrs = ['name', 'type', ]  # 'description']
+        for k, v in self.__dict__.items():
+            if k not in no_append_attrs:
+                rep += ", {}={}".format(k, v)
         rep += ")"
         return rep
+
 
 class MavlinkXmlMessage(object):
 
@@ -234,18 +241,19 @@ class MavlinkXmlMessage(object):
         }
 
         for child in message_data_elem:
-            if not child.tag in TAG_MAP:
+            if child.tag not in TAG_MAP:
                 log.error("Unknown element in MavlinkXmlMessage: {}".format(child.tag))
             else:
                 TAG_MAP[child.tag](self, child)
 
         # set any element attributes as object attributes (should set 'id' and 'name' attributes for a message)
-        for k,v in message_data_elem.attrib.items():
+        for k, v in message_data_elem.attrib.items():
             setattr(self, '_' + k, v)
 
         self._id = int(self._id)
         self._name = str(self._name)
-        self._length = sum(field.field_len for field in self._fields) + sum(field.field_len for field in self._extension_fields)
+        self._length = sum(field.field_len for field in self._fields) + sum(
+            field.field_len for field in self._extension_fields)
 
         self.__reorder_fields()
 
@@ -296,14 +304,15 @@ class MavlinkXmlMessage(object):
         """The maximum length of the message payload (does not include the header) in bytes"""
         return self._length
 
-    def __reorder_fields(self):
+    def __reorder_fields(self) -> None:
         """reorder the fields array to comply with Mavlink field reordering rules"""
         # fun fact: the way mavlink reorders fields is actually terrible
-        # for now just sort the fields array itself (why maintain original field order? nice for generated function calls?)
+        # for now just sort the fields array itself (why maintain original field order? nice
+        # for generated function calls?)
         if len(self._fields) > 0:
             self._sorted_fields = sorted(self._fields, key=operator.attrgetter('base_type_len'), reverse=True)
 
-    def __calculate_crc_extra(self):
+    def __calculate_crc_extra(self) -> None:
         """Calculate and set the CRC_EXTRA for this message"""
         mav_crc_generator = crcmod.predefined.Crc('crc-16-mcrf4xx')
         msg_name_str = self.name + ' '
@@ -320,7 +329,7 @@ class MavlinkXmlMessage(object):
         digest = int(mav_crc_generator.hexdigest(), 16)
         self._crc_extra = (digest & 0xff) ^ (digest >> 8)
 
-    def __append_field(self, field_data_elem : DataElement):
+    def __append_field(self, field_data_elem : DataElement) -> None:
         """append a new field to the correct list (fields or extension_fields"""
         # on construction, has_extensions is marked True once an 'extensions' element is encountered.
         # meaning all field elements following has_extension being set to True are extension fields
@@ -340,6 +349,7 @@ class MavlinkXmlMessage(object):
         rep += ")"
         return rep
 
+
 class MavlinkXml(object):
 
     def __init__(self, mavlink_data_elem : DataElement):
@@ -358,7 +368,7 @@ class MavlinkXml(object):
         }
 
         for child in mavlink_data_elem:
-            if not child.tag in TAG_MAP:
+            if child.tag not in TAG_MAP:
                 log.error("Unknown element in MavlinkXml : {}".format(child.tag))
             else:
                 TAG_MAP[child.tag](self, child)
@@ -373,12 +383,12 @@ class MavlinkXml(object):
         """List of all enums contained in this mavlink dialect xml"""
         return self._enums
 
-    def __enumerate_messages(self, messages_data_elem : DataElement):
+    def __enumerate_messages(self, messages_data_elem : DataElement) -> None:
         """Used during construction to import message definitions into the object"""
         for child in messages_data_elem:
             self._messages.append(MavlinkXmlMessage(child))
 
-    def __enumerate_enums(self, enums_data_elem):
+    def __enumerate_enums(self, enums_data_elem : DataElement) -> None:
         """Used during construction to import enum definitions into the object"""
         for child in enums_data_elem:
             self._enums.append(MavlinkXmlEnum(child))
@@ -389,13 +399,14 @@ class MavlinkXml(object):
             rep += " {}\n".format(msg.__repr__())
         return rep
 
+
 class MavlinkXmlFile(object):
     """
     Top-level model object to contain information on a mavlink xml definition
     file including its parsed/validated @ref MavlinkXml object
     """
 
-    def __init__(self, absolute_path, xml : MavlinkXml):
+    def __init__(self, absolute_path : str, xml : MavlinkXml):
         """
         Construct a Message Definition xml object. These objects must contain
         their base filename (ie: 'common.xml'), the absolute path to the file
@@ -406,11 +417,10 @@ class MavlinkXmlFile(object):
         self.xml = xml
         self.dependencies = None
 
-    def set_dependencies(self, deps : List[str]):
+    def set_dependencies(self, deps : List[str]) -> None:
         """
         Update this objects list of dependencies.
         The dependency list is a list of all xml message definition files
         this xml directly or indirectly includes
         """
         self.dependencies = deps
-
