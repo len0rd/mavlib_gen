@@ -200,6 +200,7 @@ class MavlinkXmlValidator(object):
                         # they are contained in
                         # NOTE: include_path is split on unix or windows path separator to ensure the
                         #       abs_include_path generated works for the current os
+                        # TODO: verify windows path split still works
                         split_include_path = re.split(r'[\\\/]', include_path)
                         abs_include_path = os.path.abspath(
                             os.path.join(os.path.dirname(validated_xmls[cur_dialect].absolute_path),

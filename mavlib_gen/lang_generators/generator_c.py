@@ -12,9 +12,11 @@
 ################################################################################
 import os
 import logging
+import re
 from .generator_base import AbstractLangGenerator
 from typing import Dict, List
-from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
+from ..model.mavlink_xml import (MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField,
+    MavlinkXmlEnum, MavlinkXmlEnumEntry)
 
 log = logging.getLogger(__name__)
 
@@ -25,10 +27,11 @@ class CLangGenerator(AbstractLangGenerator):
         script_dir = os.path.dirname(__file__)
         self.template_dir = os.path.abspath(os.path.join(script_dir, 'templates', 'c'))
         self.msg_def_format = os.path.join(self.template_dir, 'message_definition.h.in')
-        self.dialect_msg_format = os.path.join(self.template_dir, 'dialect_msgs.h.in')
 
     DOC_COMMENT_PREPEND = ' * '
-    FIELD_DOC_COMMENT_PREPEND = '    /// '
+    # number of spaces that comprise a standard indent
+    STANDARD_INDENT_SIZE = 4
+    DOC_COMMENT_PREPEND2 = '/// '
     MSG_DEF_FILENAME_FORMAT = 'mavlink_msg_{}.h'
 
     def lang_name(self) -> str:
@@ -78,6 +81,7 @@ class CLangGenerator(AbstractLangGenerator):
                         return False
 
             self.__generate_xml_msg_include(dialect_name_lower, xml.messages, gen_dir)
+            self.__generate_enums(xml.enums, gen_dir, dialect_name_lower)
 
         return True
 
@@ -87,6 +91,8 @@ class CLangGenerator(AbstractLangGenerator):
         Generates the dialects message include file. This header is simply
         a collection of include statements for all messages in the dialect
         """
+        dialect_msg_include_format = os.path.join(self.template_dir, 'dialect_msgs.h.in')
+
         # generate an include string for each message
         msg_c_includes = []
         for msg_def in msgs:
@@ -96,7 +102,7 @@ class CLangGenerator(AbstractLangGenerator):
         # generate the XMLs message include. This .h includes all messages in this dialect ONLY
         include_string_out = '\n'.join([msg_inc for msg_inc in msg_c_includes])
         dialect_msgs_file_out = os.path.abspath(os.path.join(outdir, '{}_msgs.h'.format(dialect_name_lower)))
-        with open(self.dialect_msg_format, 'r') as dialect_msgs_format_file:
+        with open(dialect_msg_include_format, 'r') as dialect_msgs_format_file:
             formatter = dialect_msgs_format_file.read()
             with open(dialect_msgs_file_out, 'w') as dialect_msgs_out:
                 dialect_msgs_out.write(formatter.format(
@@ -157,19 +163,24 @@ class CLangGenerator(AbstractLangGenerator):
         """generate the definition string for a single message field"""
         MSG_FIELD_FORMATTER = "{field_desc}    {type} {name};"
 
-        field_desc = ''
-        if field.description is not None:
-            raw_field_desc = self.__generic_description_formatter(field.description)
-            if len(raw_field_desc) > 0:
-                field_desc = self.FIELD_DOC_COMMENT_PREPEND + raw_field_desc.replace('\n',
-                    '\n' + self.FIELD_DOC_COMMENT_PREPEND) + '\n'
-
         field_str = MSG_FIELD_FORMATTER.format(
-            field_desc=field_desc,
+            field_desc=self.__doc_comment_formatter(field.description, 1),
             type=field.type,
             name=field.name,
         )
         return field_str
+
+    def __doc_comment_formatter(self, raw_desc : str, num_indents : int) -> str:
+        """Make a doc comment description string with the provided raw value and indented num_indents times"""
+        if raw_desc is None:
+            return ''
+        out = self.__generic_description_formatter(raw_desc)
+        # remove extra whitespace that is introduced from the tag value being indented
+        out = re.sub(r'\n *', '\n', out)
+        if len(out) > 0:
+            doc_prepend = (' ' * (self.STANDARD_INDENT_SIZE * num_indents)) + self.DOC_COMMENT_PREPEND2
+            out = doc_prepend + out.replace('\n', '\n' + doc_prepend) + '\n'
+        return out
 
     def __generic_description_formatter(self, raw_desc : str) -> str:
         """
@@ -182,3 +193,51 @@ class CLangGenerator(AbstractLangGenerator):
         if raw_desc.startswith('\n'):
             raw_desc = raw_desc[1:]
         return raw_desc
+
+    def __generate_enums(self, enums : List[MavlinkXmlEnum], outdir : str, dialect_name_lower : str) -> bool:
+        """
+        Generate all enums for a single dialect into a header file
+        """
+        ENUM_FORMATTER = "{doc_string}typedef enum {enum_name}_t {{\n{enum_entries}\n}};\n"
+        dialect_enums_format = os.path.join(self.template_dir, 'dialect_enums.h.in')
+        dialect_enums_file_out = os.path.abspath(os.path.join(outdir, '{}_enums.h'.format(dialect_name_lower)))
+
+        all_enums = ''
+
+        for enum in enums:
+            entry_strs = ''
+            for enum_entry in enum.entries:
+                entry_strs += self.__generate_enum_entry(enum_entry)
+            enum_str = ENUM_FORMATTER.format(
+                doc_string=self.__doc_comment_formatter(enum.description, 0),
+                enum_name=enum.name,
+                enum_entries=entry_strs)
+            all_enums += enum_str
+
+        with open(dialect_enums_format, 'r') as dialect_enums_format_file:
+            formatter = dialect_enums_format_file.read()
+            with open(dialect_enums_file_out, 'w') as dialect_enums_out:
+                dialect_enums_out.write(formatter.format(
+                    dialect_name_lower=dialect_name_lower,
+                    dialect_name_upper=dialect_name_lower.upper(),
+                    all_enums=all_enums
+                ))
+
+    def __generate_enum_entry(self, enum_entry : MavlinkXmlEnumEntry) -> str:
+        """Generate the C enum entry string for a single enum entry"""
+        ENUM_ENTRY_FORMATTER = "{doc_string}" + (' ' * self.STANDARD_INDENT_SIZE) + "{entry_name} = {value},\n"
+
+        doc_string = enum_entry.description
+        doc_string = doc_string.strip()
+        if len(enum_entry.params) > 0:
+            if not doc_string.endswith('\n'):
+                doc_string += '\n'
+            doc_string += "Param Values:\n"
+            for param in enum_entry.params:
+                doc_string += param.doc_string(self.STANDARD_INDENT_SIZE) + '\n'
+
+        return ENUM_ENTRY_FORMATTER.format(
+            doc_string=self.__doc_comment_formatter(doc_string, 1),
+            entry_name=enum_entry.name,
+            value=enum_entry.value,
+        )

@@ -25,7 +25,7 @@ class MavlinkXmlEnumEntryParam(object):
 
     def __init__(self, param_data_elem : DataElement):
         self._index = None
-        self._description = None
+        self._description = ""
         self._label = None
         self._minValue = None
         self._maxValue = None
@@ -50,6 +50,11 @@ class MavlinkXmlEnumEntryParam(object):
     def description(self) -> str:
         """description string attached to the param"""
         return self._description
+
+    def doc_string(self, continuation_indent : int = 4) -> str:
+        """Friendly doc string that can be used by generators"""
+        indented_doc_str = self.description.replace('\n', '\n' + ' ' * continuation_indent)
+        return "param {}: {}".format(self.index, indented_doc_str)
 
     # TODO: add other param values here as needed
 
