@@ -9,5 +9,8 @@
         "mavlib_gen"
     ],
     "python.testing.unittestEnabled": true,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.rulers": [
+        100
+    ]
 }

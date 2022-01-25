@@ -193,7 +193,10 @@ class CLangGenerator(AbstractLangGenerator):
         return field_str
 
     def __doc_comment_formatter(self, raw_desc: str, num_indents: int) -> str:
-        """Make a doc comment description string with the provided raw value and indented num_indents times"""
+        """
+        Make a doc comment description string with the provided raw value and indented num_indents
+        times
+        """
         if raw_desc is None:
             return ""
         out = self.__generic_description_formatter(raw_desc)

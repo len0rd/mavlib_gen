@@ -80,25 +80,23 @@ class UniqueMsgIdNameAcrossDependencies(AbstractXmlValidator):
                 conflicting_ids = base_msgid_set.intersection(dep_msgid_set)
                 if len(conflicting_ids) > 0:
                     log.error(
-                        "One of '{}'s dependencies has a conflicting message id with one of its other "
-                        "dependencies (or with '{}' itself)".format(fname, fname)
+                        f"One of '{fname}'s dependencies has a conflicting message id with one "
+                        + f"of its other dependencies (or with '{fname}' itself)"
                     )
                     log.error(
-                        "Conflicting id(s): {}. This conflict can be found in {} and one of the following: {}".format(
-                            conflicting_ids, dependency_xml_file.filename, processed
-                        )
+                        f"Conflicting id(s): {conflicting_ids}. This conflict can be found in "
+                        + f"{dependency_xml_file.filename} and one of the following: {processed}"
                     )
                     return False
                 conflicting_names = base_msgname_set.intersection(dep_msgname_set)
                 if len(conflicting_names) > 0:
                     log.error(
-                        "One of '{}'s dependencies has a conflicting message name with one of its other "
-                        "dependencies (or with '{}' itself)".format(fname, fname)
+                        f"One of '{fname}'s dependencies has a conflicting message name with one "
+                        + f"of its other dependencies (or with '{fname}' itself)"
                     )
                     log.error(
-                        "Conflicting name(s): {}. This conflict can be found in {} and one of the following: {}".format(
-                            conflicting_names, dependency_xml_file.filename, processed
-                        )
+                        f"Conflicting name(s): {conflicting_names}. This conflict can be found in "
+                        + f"{dependency_xml_file.filename} and one of the following: {processed}"
                     )
                     return False
                 # otherwise, no conflicts
@@ -128,7 +126,9 @@ class MavlinkXmlValidator(object):
         self.custom_validators.append(self.msgid_name_validator)
 
     def add_validator(self, custom_validator: AbstractXmlValidator) -> None:
-        """Add a custom validator to the list of validators to be run when @ref validate is called"""
+        """
+        Add a custom validator to the list of validators to be run when @ref validate is called
+        """
         self.custom_validators.append(custom_validator)
 
     def validate_single_xml(self, xml_filename: str) -> MavlinkXmlFile:
@@ -180,17 +180,16 @@ class MavlinkXmlValidator(object):
     ) -> int:
         """
         Check that 'msg_def' is unique to the definitions in 'other_msg_defs'
-        Since the dialect filename is used in generation to name other files, we cannot allow two different
-        msg defs to have the same name
+        Since the dialect filename is used in generation to name other files, we cannot allow two
+        different msg defs to have the same name
         """
         if msg_def.filename in other_msg_defs:
             if msg_def.absolute_path != other_msg_defs[msg_def.filename].absolute_path:
                 log.error(
-                    "Non-identical include paths for message definition file '{}' ('{}' vs '{}')".format(
-                        other_msg_defs[msg_def.filename].filename,
-                        other_msg_defs[msg_def.filename].absolute_path,
-                        msg_def.absolute_path,
-                    )
+                    "Non-identical include paths for message definition file "
+                    + f"'{other_msg_defs[msg_def.filename].filename}' "
+                    + f"('{other_msg_defs[msg_def.filename].absolute_path}' vs "
+                    + f"'{msg_def.absolute_path}')"
                 )
                 return MSG_DEF_DUPLICATE_ERR
             return MSG_DEF_DUPLICATE
@@ -203,9 +202,11 @@ class MavlinkXmlValidator(object):
         Expand the includes of each message definition xml in validated_xmls.
         This method has a number of responsibilities:
         - ensure no duplicates are added to the validated_xmls dict
-        - validate the schema of all included message definition xmls (using @ref validate_single_xml)
+        - validate the schema of all included message definition xmls (using @ref
+          validate_single_xml)
         - Ensure valid include tree (no circular dependencies)
-        Note: The schema has a constraint which ensures include tag contents are unique within a definition file
+        Note: The schema has a constraint which ensures include tag contents are unique within a
+        definition file
         """
         # Use a Directed Acyclic Graph (DAG) to ensure valid include tree
         # with definitions <include> tags (no circular dependencies)
@@ -219,20 +220,21 @@ class MavlinkXmlValidator(object):
             for cur_dialect in current_xmls_to_expand:
                 log.debug("Expanding includes in dialect {}".format(cur_dialect))
                 if len(validated_xmls[cur_dialect].xml.includes) == 0:
-                    # add the xml to the graph (becomes important later when analyzing dependencies for generation)
+                    # add the xml to the graph (becomes important later when analyzing dependencies
+                    # for generation)
                     include_graph.add_node(validated_xmls[cur_dialect].filename)
                 else:
                     for include_path in validated_xmls[cur_dialect].xml.includes:
-                        # per the mavlink schema definition, include tags are relative to the dialect file
-                        # they are contained in
-                        # NOTE: include_path is split on unix or windows path separator to ensure the
-                        #       abs_include_path generated works for the current os
+                        # per the mavlink schema definition, include tags are relative to the
+                        # dialect file they are contained in
+                        # NOTE: include_path is split on unix or windows path separator to ensure
+                        #       the abs_include_path generated works for the current os
                         # TODO: verify windows path split still works
                         split_include_path = re.split(r"[\\\/]", include_path)
                         abs_include_path = os.path.abspath(
                             os.path.join(
                                 os.path.dirname(validated_xmls[cur_dialect].absolute_path),
-                                *split_include_path
+                                *split_include_path,
                             )
                         )
                         if not os.path.isfile(abs_include_path):
@@ -247,7 +249,8 @@ class MavlinkXmlValidator(object):
                             )
                             return None
 
-                        # make a barebones MavlinkXmlFile to run a duplicate check with the current list
+                        # make a barebones MavlinkXmlFile to run a duplicate check with the current
+                        # list
                         dup_check_def = MavlinkXmlFile(abs_include_path, {})
                         uniqueness_result = self.is_msg_def_unique(dup_check_def, validated_xmls)
                         if uniqueness_result == MSG_DEF_DUPLICATE_ERR:
@@ -257,8 +260,8 @@ class MavlinkXmlValidator(object):
                             )
                             return None
                         elif uniqueness_result == MSG_DEF_DUPLICATE:
-                            # This file has already been validated and added to the validated_xmls list.
-                            # All thats left to do is add the edge/relationship to the DAG (which is done below)
+                            # This file has already been validated and added to the validated_xmls
+                            # list. All thats left to do is add the edge/relationship to the DAG
                             pass
                         elif uniqueness_result == MSG_DEF_UNIQUE:
                             validated_xml = self.validate_single_xml(abs_include_path)
@@ -276,7 +279,8 @@ class MavlinkXmlValidator(object):
                         log.debug("Create edge {} - {}".format(cur_dialect, dup_check_def.filename))
                         include_graph.add_edges_from([(cur_dialect, dup_check_def.filename)])
 
-                        # confirm the DAG is still directed and acyclic (to circular dependencies) before proceeding
+                        # confirm the DAG is still directed and acyclic (to circular dependencies)
+                        # before proceeding
                         if not netx.is_directed_acyclic_graph(include_graph):
                             log.error(
                                 "Circular dependency detected involving '{}' and its included"
@@ -290,15 +294,15 @@ class MavlinkXmlValidator(object):
     ) -> None:
         """
         For each dialect xml, use the include graph to generate its list of dependencies.
-        The resulting list of dependencies is the list of all xmls directly or indirectly included by the dialect.
-        Each xmls list is set in its MavlinkXmlFile object
+        The resulting list of dependencies is the list of all xmls directly or indirectly
+        included by the dialect. Each xmls list is set in its MavlinkXmlFile object
         """
 
         all_nodes = list(validated_xmls.keys())
         for node in all_nodes:
             includes = []
-            # a 'reachable_node' comes from a depth-first-search (dfs) of the graph and indicates all includes
-            # that are directly or indirectly included by the root 'node'
+            # a 'reachable_node' comes from a depth-first-search (dfs) of the graph and indicates
+            # all includes that are directly or indirectly included by the root 'node'
             for reachable_node in netx.dfs_postorder_nodes(include_graph, source=node):
                 if reachable_node != node:  # we know we're reachable from ourself
                     includes.append(reachable_node)

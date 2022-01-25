@@ -6,4 +6,5 @@ exclude = __pycache__
 # E128: continuation lines under indented for visual style
 # ANN101: 'self' does not have a type hint
 # ANN204: Missing return type for special method (like '__init__')
-ignore = E203,E128,ANN101,ANN204
+# W503: Line break before binary operator. Done by black formatter
+ignore = E203,E128,ANN101,ANN204,W503
