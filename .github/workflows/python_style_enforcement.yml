@@ -15,13 +15,12 @@ jobs:
       max-parallel: 5
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt && pip install flake8 flake8-annotations
-    - name: Check style
-      run: flake8 --config .flake8 mavlib_gen
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install -r dev-requirements.txt
+      - name: Check style
+        run: flake8 --config .flake8 mavlib_gen

@@ -1,5 +1,5 @@
 [flake8]
-max-line-length = 120
+max-line-length = 100
 exclude = __pycache__
 # IGNORED:
 # E203: space around ':'. Ignored for type annotations

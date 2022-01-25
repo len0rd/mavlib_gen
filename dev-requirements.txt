@@ -1,0 +1,6 @@
+-r requirements.txt
+# black is used for code-formatting
+black>=21.11b0,<22.*
+# flake8 is used for style enforcement
+flake8
+flake8-annotations

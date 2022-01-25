@@ -13,10 +13,11 @@
 import logging
 from typing import List
 from .validator import MavlinkXmlValidator
+
 # from .lang_generators.generator_base import AbstractLangGenerator
 
 
-def generate(xmls : List[str], output_lang : str, output_location : str) -> bool:
+def generate(xmls: List[str], output_lang: str, output_location: str) -> bool:
     """
     Validate the provided xml(s) and generate into MAVLink code of output_lang in output_location
     @param xmls
@@ -33,7 +34,7 @@ def generate(xmls : List[str], output_lang : str, output_location : str) -> bool
         return False  # failed to generate
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     # generate('common.xml', 'c', 'test/')
-    generate('simple_msg.xml', 'c', 'test/')
+    generate("simple_msg.xml", "c", "test/")
