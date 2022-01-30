@@ -1,7 +1,14 @@
 # Mavlib Gen
 
-A mavlink C lang generator with a permissive MIT license. This project is for a MAVLink generator ONLY.
+A mavlink generator with a permissive MIT license. This project is for a MAVLink generator ONLY.
 No additional features or tools will be included in this project.
+
+## Language Support
+
+Language | Generator Status
+---------|-----------------
+C        | 40%
+Python   | 0%
 
 ## Features
 
