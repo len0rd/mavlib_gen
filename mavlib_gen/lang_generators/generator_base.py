@@ -21,6 +21,7 @@ class AbstractLangGenerator(ABC):
     The generator for each language (C, C++, etc) should
     implement this class
     """
+
     @abstractmethod
     def lang_name(self) -> str:
         """
@@ -29,7 +30,7 @@ class AbstractLangGenerator(ABC):
         pass
 
     @abstractmethod
-    def generate(self, validated_xmls : Dict[str, MavlinkXmlFile], output_dir : str) -> bool:
+    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: str) -> bool:
         """
         Top-level generate method. Generates mavlink messages in the
         implemented language from the provided dialect file

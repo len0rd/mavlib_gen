@@ -6,3 +6,5 @@ xmlschema>=1.5.2
 networkx>=2.5
 # used for mavlink crc calculation
 crcmod>=1.7
+# jinja is used for code generation
+jinja2>=3.0.3

@@ -16,6 +16,7 @@ import operator
 from typing import List
 from xmlschema.dataobjects import DataElement
 import crcmod
+import re
 
 log = logging.getLogger(__name__)
 
@@ -289,6 +290,32 @@ class MavlinkXmlMessage(object):
         """the unique message name"""
         return self._name
 
+    def get_name(self, format: str) -> str:
+        """
+        Get the unique message name in a particular format
+
+        :TODO: This method works under the assumption that the name property is
+            in a snake_case (either UPPER or lower or Camel_Snake) already
+        :TODO: make this a standalone method that other objects can use
+
+        :param format: specify the desired format to return the name string in.
+            Available types:
+            'lower_snake' = lower snake case name (ie: "message_name")
+            'UPPER_SNAKE' = upper snake case name (ie: "MESSAGE_NAME")
+            'UpperCamel'  = upper camel case name (ie: "MessageName")
+            If none of these options are correctly provided, the raw name string is returned
+        """
+        caseless_format = format.lower()
+        if caseless_format == "lower_snake":
+            return self.name.lower()
+        elif caseless_format == "upper_snake":
+            return self.name.upper()
+        elif caseless_format == "uppercamel":
+            all_words = re.split(r"([^a-zA-Z0-9])", self.name)
+            return "".join(word.capitalize() for word in all_words if word.isalnum())
+        else:
+            return self.name
+
     @property
     def description(self) -> str:
         """description string attached to the message"""
@@ -441,8 +468,16 @@ class MavlinkXmlFile(object):
         """
         self.absolute_path = absolute_path
         self.filename = os.path.basename(absolute_path)
-        self.xml = xml
+        self._xml = xml
         self.dependencies = None
+
+    @property
+    def xml(self) -> MavlinkXml:
+        """
+        Get the XML model object for this file which contains all message and enum definition
+        model objects
+        """
+        return self._xml
 
     def set_dependencies(self, deps: List[str]) -> None:
         """
