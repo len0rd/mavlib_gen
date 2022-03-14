@@ -21,6 +21,33 @@ import re
 log = logging.getLogger(__name__)
 
 
+# Helper methods (shared by multiple model objects)
+def name_str_format_converter(str_in: str, format: str) -> str:
+    """
+    Make best-effort to fet the str_in name value in a particular format
+
+    :TODO: This method works under the assumption that str_in is
+        in a snake_case/snake-case (either UPPER or lower or Camel_Snake) already
+
+    :param format: specify the desired format to return the name string in.
+        Available types:
+        'lower_snake' = lower snake case name (ie: "message_name")
+        'UPPER_SNAKE' = upper snake case name (ie: "MESSAGE_NAME")
+        'UpperCamel'  = upper camel case name (ie: "MessageName")
+        If none of these options are correctly provided, the raw name string is returned
+    """
+    caseless_format = format.lower()
+    if caseless_format == "lower_snake":
+        return str_in.lower()
+    elif caseless_format == "upper_snake":
+        return str_in.upper()
+    elif caseless_format == "uppercamel":
+        all_words = re.split(r"([^a-zA-Z0-9])", str_in)
+        return "".join(word.capitalize() for word in all_words if word.isalnum())
+    else:
+        return str_in
+
+
 class MavlinkXmlEnumEntryParam(object):
     """Represents a 'param' child within a mavlink XML enum entry"""
 
@@ -219,6 +246,41 @@ class MavlinkXmlMessageField(object):
     def is_array(self) -> bool:
         return self.array_len > 0
 
+    def get_name(self, format: str) -> str:
+        """
+        :param format: specify the desired format to return the field name string in.
+            Available types:
+            'lower_snake' = lower snake case name (ie: "message_name")
+            'UPPER_SNAKE' = upper snake case name (ie: "MESSAGE_NAME")
+            'UpperCamel'  = upper camel case name (ie: "MessageName")
+            If none of these options are correctly provided, the raw name string is returned
+        """
+        return name_str_format_converter(self.name, format)
+
+    def get_type(self, lang: str) -> str:
+        """
+        Get what the internal type of this field would be in the specified language
+
+        :param lang: The language to convert the mavlink type into
+            Available Languages:
+            'c'
+            'python' - Returns the type-hint version of this fields type.
+                EX: list of uint8's is returned as "List[int]"
+        """
+        lang = lang.lower()
+        if lang == "c":
+            return self.type
+        elif lang == "python":
+            type_out = self.type
+            if "int" in self.type:
+                type_out = "List[int]" if self.is_array else "int"
+            elif "char" in self.type:
+                type_out = "str"
+            else:
+                type_out = "List[float]" if self.is_array else "float"
+            return type_out
+        return self.type
+
     def __repr__(self):
         rep = "Field({}, type={}".format(self.name, self.type)
 
@@ -292,29 +354,14 @@ class MavlinkXmlMessage(object):
 
     def get_name(self, format: str) -> str:
         """
-        Get the unique message name in a particular format
-
-        :TODO: This method works under the assumption that the name property is
-            in a snake_case (either UPPER or lower or Camel_Snake) already
-        :TODO: make this a standalone method that other objects can use
-
-        :param format: specify the desired format to return the name string in.
+        :param format: specify the desired format to return the message name string in.
             Available types:
             'lower_snake' = lower snake case name (ie: "message_name")
             'UPPER_SNAKE' = upper snake case name (ie: "MESSAGE_NAME")
             'UpperCamel'  = upper camel case name (ie: "MessageName")
             If none of these options are correctly provided, the raw name string is returned
         """
-        caseless_format = format.lower()
-        if caseless_format == "lower_snake":
-            return self.name.lower()
-        elif caseless_format == "upper_snake":
-            return self.name.upper()
-        elif caseless_format == "uppercamel":
-            all_words = re.split(r"([^a-zA-Z0-9])", self.name)
-            return "".join(word.capitalize() for word in all_words if word.isalnum())
-        else:
-            return self.name
+        return name_str_format_converter(self.name, format)
 
     @property
     def description(self) -> str:
