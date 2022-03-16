@@ -395,6 +395,13 @@ class MavlinkXmlMessage(object):
         return self._crc_extra
 
     @property
+    def crc_extra_hex(self) -> str:
+        """
+        The Mavlink CRC_EXTRA for this message formatted as a hex value
+        """
+        return f"{self.crc_extra:02x}"
+
+    @property
     def byte_length(self) -> int:
         """The maximum length of the message payload (does not include the header) in bytes"""
         return self._length

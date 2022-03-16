@@ -22,6 +22,7 @@ from ..model.mavlink_xml import (
     MavlinkXmlEnum,
     MavlinkXmlEnumEntry,
 )
+from jinja2 import Environment, PackageLoader, select_autoescape, Template
 
 log = logging.getLogger(__name__)
 
@@ -73,20 +74,30 @@ class CLangGenerator(AbstractLangGenerator):
         if not os.path.exists(gen_dir) or not os.path.isdir(gen_dir):
             os.mkdir(gen_dir)
 
+        jenv = Environment(
+            loader=PackageLoader(
+                "mavlib_gen", package_path=os.path.join("lang_generators", "templates", "c")
+            ),
+            autoescape=select_autoescape(),
+            # trim whitespace thats automatically inserted for jinja template blocks
+            trim_blocks=True,
+            # dont automatically tab-in jinja control blocks
+            lstrip_blocks=True,
+        )
+        msgdef_template = jenv.get_template("message_definition.h.jinja")
+
         xml = dialect.xml
         # first generate messages
         if len(xml.messages) > 0:
-            with open(self.msg_def_format, "r") as mdef_format_file:
-                msg_def_format = mdef_format_file.read()
-                for msg_def in xml.messages:
-                    if not self.__generate_msg(msg_def, msg_def_format, gen_dir):
-                        # generating this message header failed
-                        log.error(
-                            "Failed to generate C header for message: '{}'. Exiting".format(
-                                msg_def.name
-                            )
+            for msg_def in xml.messages:
+                if not self.__generate_msg(msg_def, msgdef_template, gen_dir):
+                    # generating this message header failed
+                    log.error(
+                        "Failed to generate C header for message: '{}'. Exiting".format(
+                            msg_def.name
                         )
-                        return False
+                    )
+                    return False
 
             self.__generate_xml_msg_include(dialect_name_lower, xml.messages, gen_dir)
             self.__generate_enums(xml.enums, gen_dir, dialect_name_lower)
@@ -127,40 +138,36 @@ class CLangGenerator(AbstractLangGenerator):
                     )
                 )
 
-    def __generate_msg(self, msg_def: MavlinkXmlMessage, formatter: str, outdir: str) -> bool:
+    def __generate_msg(self, msg_def: MavlinkXmlMessage, template: Template, outdir: str) -> bool:
         """
-        Generate a single message using 'formatter' as the format string and placing
-        the resulting output in 'outdir'
+        Generate a single message using the provided jinja template and placing the resulting output
+        in 'outdir'
         """
-        msg_name_upper = msg_def.name.upper()
-        msg_name_lower = msg_def.name.lower()
-        msg_id = msg_def.id
 
         if msg_def.description is not None:
             raw_desc = self.__generic_description_formatter(msg_def.description)
-            formatted_msg_desc = self.DOC_COMMENT_PREPEND + raw_desc.replace(
-                "\n", "\n" + self.DOC_COMMENT_PREPEND
+            formatted_msg_desc = self.DOC_COMMENT_PREPEND + re.sub(
+                r"\n\s*", "\n" + self.DOC_COMMENT_PREPEND, raw_desc
             )
         else:
-            formatted_msg_desc = self.DOC_COMMENT_PREPEND + msg_name_lower + " struct definition"
+            formatted_msg_desc = (
+                self.DOC_COMMENT_PREPEND + msg_def.get_name("lower_snake") + " struct definition"
+            )
 
         mdef_file_out = os.path.abspath(
-            os.path.join(outdir, self.MSG_DEF_FILENAME_FORMAT.format(msg_name_lower))
+            os.path.join(
+                outdir, self.MSG_DEF_FILENAME_FORMAT.format(msg_def.get_name("lower_snake"))
+            )
         )
 
         # write out the definition file
         with open(mdef_file_out, "w") as out_file:
             out_file.write(
-                formatter.format(
-                    msg_name_upper=msg_name_upper,
-                    msg_name_lower=msg_name_lower,
+                template.render(
+                    msg=msg_def,
                     formatted_msg_desc=formatted_msg_desc,
-                    msg_id=msg_id,
                     struct_packed_def_start="",
                     struct_packed_def_end="",
-                    fields=self.__generate_msg_field_strings(msg_def),
-                    crc_extra=msg_def.crc_extra,
-                    msg_len=msg_def.byte_length,
                 )
             )
 
