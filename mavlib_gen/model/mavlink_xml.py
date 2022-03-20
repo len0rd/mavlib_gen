@@ -48,6 +48,44 @@ def name_str_format_converter(str_in: str, format: str) -> str:
         return str_in
 
 
+def raw_str_formatter(str_in: str, line_prefix: str = None, leading_newline: bool = False) -> str:
+    """
+    Get a formatted version of a raw string (typically a string from an XML definition). This mainly
+    helps fix up multi-line descriptions to look nice while hopefully preserving the intended look
+    of the author
+    """
+    processed_str = str_in
+    # replace all tabs with 4 spaces
+    processed_str = processed_str.replace("\t", "    ")
+    # remove leading_newline if one is not desired
+    if not leading_newline and processed_str.lstrip(" ")[0] == "\n":
+        processed_str = processed_str.lstrip(" ")[1:]
+
+    if "\n" in processed_str:
+        # attempt to solve for the common number of leading whitespace characters that are shared
+        # across all lines of the input string (trying to get rid of ws that comes from xml
+        # indentation)
+        START_VALUE = 1000000
+        leading_spaces = START_VALUE  # (set to unreasonably large value for below comparison)
+        for line in processed_str.split("\n"):
+            num_leading_space_on_line = len(line) - len(line.lstrip(" "))
+            if num_leading_space_on_line != 0 and num_leading_space_on_line < leading_spaces:
+                leading_spaces = num_leading_space_on_line
+        if leading_spaces != START_VALUE:
+            # replace the common number of whitespace characters with line_prefix if present
+            to_be_replaced = "\n" + (" " * leading_spaces)
+            to_replace_with = "\n" + line_prefix if line_prefix is not None else "\n"
+            processed_str = processed_str.replace(to_be_replaced, to_replace_with)
+    # add leading newline if one is desired
+    if leading_newline and processed_str[0] != "\n":
+        prepend = "\n"
+        if line_prefix is not None:
+            prepend = prepend + line_prefix
+        processed_str = prepend + processed_str
+
+    return processed_str
+
+
 class MavlinkXmlEnumEntryParam(object):
     """Represents a 'param' child within a mavlink XML enum entry"""
 
@@ -281,6 +319,15 @@ class MavlinkXmlMessageField(object):
             return type_out
         return self.type
 
+    def formatted_description(self, line_prefix: str = None, leading_newline: bool = False) -> str:
+        """
+        Get a formatted version of this fields description. This mainly helps fix up multi-line
+        descriptions to look nice while hopefully preserving the desired look of the author
+        """
+        return raw_str_formatter(
+            self.description, line_prefix=line_prefix, leading_newline=leading_newline
+        )
+
     def __repr__(self):
         rep = "Field({}, type={}".format(self.name, self.type)
 
@@ -367,6 +414,15 @@ class MavlinkXmlMessage(object):
     def description(self) -> str:
         """description string attached to the message"""
         return self._description
+
+    def formatted_description(self, line_prefix: str = None, leading_newline: bool = False) -> str:
+        """
+        Get a formatted version of this messages description. This mainly helps fix up multi-line
+        descriptions to look nice while hopefully preserving the desired look of the author
+        """
+        return raw_str_formatter(
+            self.description, line_prefix=line_prefix, leading_newline=leading_newline
+        )
 
     @property
     def fields(self) -> List[MavlinkXmlMessageField]:

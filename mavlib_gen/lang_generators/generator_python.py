@@ -18,9 +18,15 @@ from ..model.mavlink_xml import MavlinkXmlFile
 
 
 class PythonLangGenerator(AbstractLangGenerator):
-    def __init__(self):
+    def __init__(self, use_properties: bool = False):
+        """
+        :param use_properties: Use python properties in object generation instead of instance
+            attributes. This means in generated message objects, fields will have get/set methods
+            that can provide greater type enforcement and doc string retrieval compatibility
+        """
         script_dir = os.path.dirname(__file__)
         self.template_dir = os.path.abspath(os.path.join(script_dir, "templates", "python"))
+        self.use_properties = use_properties
 
     def lang_name(self) -> str:
         return "python"
@@ -52,12 +58,16 @@ class PythonLangGenerator(AbstractLangGenerator):
                 dialect_name = dialect_name[:-4]
 
             dialect_name_lower = dialect_name.lower()
+            dialect_name_upper = dialect_name.upper()
 
             filename = f"{dialect_name_lower}_msgs.py"
             file_path = os.path.join(output_dir, filename)
             with open(file_path, "w") as msgs_file_out:
                 msgs_file_out.write(
                     dialect_msgs_template.render(
-                        dialect_name=dialect_name_lower, messages=dialect.xml.messages
+                        dialect_name_lower=dialect_name_lower,
+                        dialect_name_upper=dialect_name_upper,
+                        messages=dialect.xml.messages,
+                        use_properties=self.use_properties,
                     )
                 )
