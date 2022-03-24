@@ -1,0 +1,20 @@
+/* Docs auto-scale to 75% of the available page width instead of remaining a constant width */
+.wy-nav-content {
+    max-width: 75% !important;
+}
+
+/* override table width restrictions. This prevents an issue where large tables
+   dont wrap to the themes width properly and require horizontal scroll
+*/
+@media screen and (min-width: 767px) {
+
+    .wy-table-responsive table td {
+       /* !important prevents the base css stylesheets from overriding
+          this since they are loaded after this override with rtd theme */
+       white-space: normal !important;
+    }
+
+    .wy-table-responsive {
+        overflow: visible !important;
+    }
+}

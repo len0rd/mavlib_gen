@@ -6,3 +6,6 @@ black>=21.11b0,<22.*
 # flake8 is used for style enforcement
 flake8
 flake8-annotations
+# for building docs
+sphinx
+sphinx_rtd_theme
