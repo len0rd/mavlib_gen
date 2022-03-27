@@ -11,3 +11,5 @@ sphinx
 sphinx_rtd_theme
 # hosts/rebuilds docs locally. useful for doc development
 sphinx-autobuild
+# using for markdown -> rst conversion (to include README in top-level sphinx page
+myst-parser
