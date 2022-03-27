@@ -8,3 +8,6 @@ networkx>=2.5
 crcmod>=1.7
 # jinja is used for code generation
 jinja2>=3.0.3
+# for argument parsing/completion in CLI scripts
+argparse
+argcomplete

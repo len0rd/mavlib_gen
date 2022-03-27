@@ -9,3 +9,5 @@ flake8-annotations
 # for building docs
 sphinx
 sphinx_rtd_theme
+# hosts/rebuilds docs locally. useful for doc development
+sphinx-autobuild
