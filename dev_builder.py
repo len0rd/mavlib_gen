@@ -21,13 +21,14 @@ from typing import List
 
 log = logging.getLogger("dev")
 
-script_root = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+SCRIPT_ROOT = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
 def run_check_call(command: List[str]) -> int:
     """
     Runs the provided command and returns the result code
     """
+    log.debug(f"Running: {' '.join(command)}")
     try:
         return subprocess.check_call(command)
     except subprocess.CalledProcessError as e:
@@ -42,11 +43,11 @@ class DocumentationBuilder:
 
     AVAILABLE_SUBCOMMANDS = ["build", "autobuild", "check", "clean"]
 
-    doc_source_path = os.path.join(script_root, "docs")
+    doc_source_path = os.path.join(SCRIPT_ROOT, "docs")
     doc_build_path = os.path.join(doc_source_path, "_build")
 
     @staticmethod
-    def add_arguments(subparser: argparse._SubParsersAction):
+    def add_arguments(subparser: argparse._SubParsersAction) -> None:
         """
         Add arguments to a new subparser
         """
@@ -86,11 +87,46 @@ class DocumentationBuilder:
         return 1
 
 
+class StyleChecker:
+    """
+    Encapsulates running the command to check python library style
+    """
+
+    flake_config_path = os.path.join(SCRIPT_ROOT, ".flake8")
+    library_path = os.path.join(SCRIPT_ROOT, "mavlib_gen")
+
+    @staticmethod
+    def add_arguments(subparser: argparse._SubParsersAction) -> None:
+        """
+        Add arguments to a new subparser.
+        TODO: in future support passing path so style can be checked on generated
+        python lib
+        TODO: clang-format enforcement for C++ generated code?
+        """
+        style_subparser = subparser.add_parser(
+            "style",
+            help="Check library code style is compliant",
+        )
+        style_subparser.set_defaults(func=StyleChecker.run)
+
+    @classmethod
+    def run(cls, args: argparse.Namespace) -> int:
+        command = ["flake8", "--config", cls.flake_config_path, cls.library_path]
+        ret_code = run_check_call(command)
+        if ret_code == 0:
+            log.info("Style checks passed!")
+        return ret_code
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="./dev_builder.py`")
     subparsers = parser.add_subparsers(dest="cmd")
+
+    # add subparsers as needed here
     DocumentationBuilder.add_arguments(subparsers)
+    StyleChecker.add_arguments(subparsers)
+
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
     sys.exit(args.func(args))
