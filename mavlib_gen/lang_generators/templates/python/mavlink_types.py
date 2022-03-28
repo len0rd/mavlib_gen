@@ -1,6 +1,5 @@
 # Supporting types for mavlib_gen auto-generated messages
 from abc import ABC, abstractmethod
-from multiprocessing.sharedctypes import Value
 import struct
 from typing import Union
 
@@ -16,7 +15,7 @@ class x25crc(object):
     TODO: TEMP, pulled from pymavlink
     """
 
-    def __init__(self, buf=None):
+    def __init__(self, buf: Union[str, bytes, bytearray] = None):
         self.crc = 0xFFFF
         if buf is not None:
             if isinstance(buf, str):
