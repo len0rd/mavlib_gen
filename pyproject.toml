@@ -1,2 +1,41 @@
+[project]
+name = "mavlib_gen"
+authors = [
+    {name = "len0rd"}
+]
+readme = "README.md"
+requires-python=">=3.7"
+description="A new mavlink generator that supports complex include trees"
+version = "0.0.1"
+
+dependencies = [
+    # used to verify input message definition xmls follow the mavlink schema
+    "xmlschema>=1.5.2",
+    # used to ensure valid include trees from message definition xmls
+    "networkx>=2.5",
+    # used for mavlink crc calculation
+    "crcmod>=1.7",
+    # jinja is used for code generation
+    "jinja2>=3.0.3",
+    # for argument parsing/completion in CLI scripts
+    "argparse",
+    "argcomplete",
+]
+
+[project.optional-dependencies]
+# dependencies for development
+dev = [
+    # black is used for code-formatting
+    "black>=21.11b0,<22.*",
+    # flake8 is used for style enforcement
+    "flake8",
+    "flake8-annotations",
+    # for building docs
+    "sphinx",
+    "sphinx_rtd_theme",
+    # hosts/rebuilds docs locally. useful for doc development
+    "sphinx-autobuild",
+]
+
 [tool.black]
 line-length=100

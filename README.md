@@ -1,5 +1,7 @@
 # Mavlib Gen
 
+![Python Unit Tests](https://github.com/len0rd/mavlib_gen/actions/workflows/run_unit_tests.yml/badge.svg)
+
 A mavlink generator with a permissive MIT license. This project is for a MAVLink generator ONLY.
 No additional features or tools will be included in this project.
 
@@ -22,7 +24,7 @@ Python   | 0%
 One feature I've wanted in pymavlink for quite some time is the ability to generate
 mavlink code from more advanced include trees, such as the one below.
 
-![example_of_complex_tree](docs/img/complex_include_tree_ex.svg)
+![example_of_complex_tree](docs/_img/complex_include_tree_ex.svg)
 
 Such support allows developers to better separate/isolate specific modules of a
 messaging system. Thus avoiding large, hard to navigate definition files.
