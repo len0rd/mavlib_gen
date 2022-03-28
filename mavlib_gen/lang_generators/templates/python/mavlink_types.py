@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from multiprocessing.sharedctypes import Value
 import struct
+from typing import Union
 
 
 MAVLINK_PROTOCOL_V2_STX = 0xFD
@@ -12,6 +13,7 @@ class x25crc(object):
     CRC-16/MCRF4XX - based on checksum.h from mavlink library
     Added from pymavlink. TOOD: use library that is used by
     validator?
+    TODO: TEMP, pulled from pymavlink
     """
 
     def __init__(self, buf=None):
@@ -22,7 +24,7 @@ class x25crc(object):
             else:
                 self.accumulate(buf)
 
-    def accumulate(self, buf):
+    def accumulate(self, buf: bytearray) -> int:
         """add in some more bytes"""
         accum = self.crc
         for b in buf:
@@ -31,7 +33,7 @@ class x25crc(object):
             accum = (accum >> 8) ^ (tmp << 8) ^ (tmp << 3) ^ (tmp >> 4)
         self.crc = accum
 
-    def accumulate_str(self, buf):
+    def accumulate_str(self, buf: Union[str, bytes, bytearray]) -> int:
         """add in some more bytes"""
         import array
 
@@ -116,7 +118,7 @@ class MavlinkHeader:
         return self._msg_len
 
     @payload_length.setter
-    def payload_length(self, new_pld_len: int):
+    def payload_length(self, new_pld_len: int) -> None:
         if new_pld_len > 255:
             raise ValueError(f"Attempt to set 8bit payload length to {new_pld_len}")
         self._msg_len = new_pld_len
@@ -130,7 +132,7 @@ class MavlinkHeader:
         return self._src_sys
 
     @src_sys.setter
-    def src_sys(self, new_src_sys: int):
+    def src_sys(self, new_src_sys: int) -> None:
         if new_src_sys > 255:
             raise ValueError(f"Attempt to set 8bit source system to {new_src_sys}")
         self._src_sys = new_src_sys
@@ -144,7 +146,7 @@ class MavlinkHeader:
         return self._src_comp
 
     @src_comp.setter
-    def src_comp(self, new_src_comp: int):
+    def src_comp(self, new_src_comp: int) -> None:
         if new_src_comp > 255:
             raise ValueError(f"Attempt to set 8bit source component to {new_src_comp}")
         self._src_comp = new_src_comp
@@ -158,7 +160,7 @@ class MavlinkHeader:
         return self._seq
 
     @sequence_id.setter
-    def sequence_id(self, new_seq_id: int):
+    def sequence_id(self, new_seq_id: int) -> None:
         if new_seq_id > 255:
             raise ValueError(f"Attempt to set 8bit sequence id to {new_seq_id}")
         self._compat_flags = new_seq_id
@@ -172,7 +174,7 @@ class MavlinkHeader:
         return self._compat_flags
 
     @compatibility_flags.setter
-    def compatibility_flags(self, new_compat_flags: int):
+    def compatibility_flags(self, new_compat_flags: int) -> None:
         if new_compat_flags > 255:
             raise ValueError(f"Attempt to set 8bit compatibility flags to {new_compat_flags}")
         self._compat_flags = new_compat_flags
@@ -186,12 +188,12 @@ class MavlinkHeader:
         return self._incompat_flags
 
     @incompatibility_flags.setter
-    def incompatibility_flags(self, new_incompat_flags: int):
+    def incompatibility_flags(self, new_incompat_flags: int) -> None:
         if new_incompat_flags > 255:
             raise ValueError(f"Attempt to set 8bit incompatibility flags to {new_incompat_flags}")
         self._incompat_flags = new_incompat_flags
 
-    def set_from_channel(self, channel: MavlinkChannel):
+    def set_from_channel(self, channel: MavlinkChannel) -> None:
         """
         Set properties of this header based on the provided MavlinkChannel
         """
@@ -255,5 +257,5 @@ class MavlinkMessage(ABC):
         packed_msg = self.header.pack() + serialized_payload
         msg_crc = x25crc(packed_msg[1:])
         msg_crc.accumulate_str(struct.pack("B", crc_extra))
-        packed_msg += struct.pack('<H', msg_crc)
+        packed_msg += struct.pack("<H", msg_crc)
         return packed_msg
