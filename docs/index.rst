@@ -1,6 +1,10 @@
 .. Mavlib gen documentation master file
 
-# Welcome to the mavlib gen documentation!
+Welcome to the mavlib gen documentation!
+========================================
 
-.. include:: ../README.md
-    :parser: myst_parser.sphinx_
+A mavlink generator with a permissive MIT license.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:

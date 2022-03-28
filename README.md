@@ -1,5 +1,7 @@
 # Mavlib Gen
 
+![Python Unit Tests](https://github.com/len0rd/mavlib_gen/actions/workflows/run_unit_tests.yml/badge.svg)
+
 A mavlink generator with a permissive MIT license. This project is for a MAVLink generator ONLY.
 No additional features or tools will be included in this project.
 

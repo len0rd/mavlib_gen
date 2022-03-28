@@ -21,6 +21,6 @@ jobs:
         with:
           python-version: 3.9
       - name: Install dependencies
-        run: pip install -r dev-requirements.txt
+        run: pip install .[dev]
       - name: Check style
         run: flake8 --config .flake8 mavlib_gen
