@@ -26,4 +26,4 @@ jobs:
         run: |
           pip install .
       - name: Test
-        run: ./test.sh
+        run: ./dev_builder.py test

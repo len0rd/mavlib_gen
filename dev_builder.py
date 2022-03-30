@@ -23,6 +23,14 @@ log = logging.getLogger("dev")
 
 SCRIPT_ROOT = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
+LOG_LEVELS = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warn": logging.WARN,
+    "error": logging.ERROR,
+    "fatal": logging.FATAL,
+}
+
 
 def run_check_call(command: List[str]) -> int:
     """
@@ -118,15 +126,55 @@ class StyleChecker:
         return ret_code
 
 
+class UnitTestRunner:
+    """
+    Encapsulates running various levels of unit tests
+    """
+
+    @staticmethod
+    def add_arguments(subparser: argparse._SubParsersAction) -> None:
+        """
+        Add arguments to a new subparser.
+        TODO: in future support passing path so style can be checked on generated
+        python lib
+        TODO: clang-format enforcement for C++ generated code?
+        """
+        test_subparser = subparser.add_parser(
+            "test",
+            help="Run package unit tests",
+        )
+        test_subparser.set_defaults(func=UnitTestRunner.run)
+
+    @classmethod
+    def run(cls, args: argparse.Namespace) -> int:
+        from tests.test import run_all_tests
+
+        # set global logging level to critical to silence all the errors
+        # that the library (correctly) produces while being tested
+        logging.getLogger().setLevel(logging.CRITICAL)
+        return run_all_tests()
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="./dev_builder.py`")
     subparsers = parser.add_subparsers(dest="cmd")
+    parser.add_argument(
+        "-l",
+        "--level",
+        help="Specify the log level to run the command at",
+        default="error",
+        choices=LOG_LEVELS.keys(),
+    )
 
     # add subparsers as needed here
     DocumentationBuilder.add_arguments(subparsers)
     StyleChecker.add_arguments(subparsers)
+    UnitTestRunner.add_arguments(subparsers)
 
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
+
+    logging.basicConfig(level=LOG_LEVELS[args.level.lower()])
+
     sys.exit(args.func(args))
