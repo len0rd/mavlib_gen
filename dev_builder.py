@@ -144,12 +144,19 @@ class UnitTestRunner:
             "test",
             help="Run package unit tests",
         )
+        test_subparser.add_argument(
+            "-c", "--cov", action="store_true", help="Produce coverate report"
+        )
+
         test_subparser.set_defaults(func=UnitTestRunner.run)
 
     @classmethod
     def run(cls, args: argparse.Namespace) -> int:
         """Run unit tests"""
-        return pytest.main(["tests"])
+        pytest_args = ["tests/"]
+        if args.cov:
+            pytest_args.extend(["--cov=mavlib_gen/", "--cov-report=xml"])
+        return pytest.main(pytest_args)
 
 
 if __name__ == "__main__":

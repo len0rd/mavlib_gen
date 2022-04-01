@@ -34,6 +34,7 @@ dev = [
     # hosts/rebuilds docs locally. useful for doc development
     "sphinx-autobuild",
     "pytest",
+    "pytest-cov",
 ]
 
 [tool.black]
