@@ -1,43 +1,50 @@
-import unittest, os
+import os
 import xmlschema
+import pytest
 
-class TestXmlSchema(unittest.TestCase):
+script_dir = os.path.dirname(__file__)
+mav_schema_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "mavlib_gen", "schema"))
+schema = xmlschema.XMLSchema11(
+    os.path.join(mav_schema_dir, "mavlink_schema.xsd"), base_url=mav_schema_dir
+)
 
-    def setUp(self):
-        self.script_dir = os.path.dirname(__file__)
-        base_url = os.path.abspath(os.path.join(self.script_dir, '..', '..', 'mavlib_gen', 'schema'))
-        self.schema = xmlschema.XMLSchema11(os.path.join(base_url, 'mavlink_schema.xsd'), base_url=base_url)
+failure_test_case_dir = os.path.join(script_dir, "test_cases", "fail")
+schema_failure_files = [
+    f
+    for f in os.listdir(failure_test_case_dir)
+    if os.path.isfile(os.path.join(failure_test_case_dir, f))
+]
 
-    def test_failure_cases(self):
-        """Test cases where the schema should produce an error"""
-        test_case_dir = os.path.join(self.script_dir, 'test_cases', 'fail')
-        test_case_files = [f for f in os.listdir(test_case_dir) if os.path.isfile(os.path.join(test_case_dir, f))]
+success_test_case_dir = os.path.join(script_dir, "test_cases", "pass")
+schema_success_files = [
+    f
+    for f in os.listdir(success_test_case_dir)
+    if os.path.isfile(os.path.join(success_test_case_dir, f))
+]
 
-        for test_file in test_case_files:
-            test_file = os.path.join(test_case_dir, test_file)
-            if self.schema.is_valid(test_file):
-                # schema validation should fail
-                self.fail('Test case file "{}" passed schema validation when it should have failed!'.format(test_file))
 
-    def test_successful_cases(self):
-        """Test cases where the schema should succeed"""
-        test_case_dir = os.path.join(self.script_dir, 'test_cases', 'pass')
-        test_case_files = [f for f in os.listdir(test_case_dir) if os.path.isfile(os.path.join(test_case_dir, f))]
+@pytest.mark.parametrize("filename", schema_failure_files)
+def test_failure_cases(filename):
+    test_file = os.path.join(failure_test_case_dir, filename)
+    assert not schema.is_valid(
+        test_file
+    ), f"Test case file '{filename}' passed schema validation when it should have failed"
 
-        for test_file in test_case_files:
-            test_file = os.path.join(test_case_dir, test_file)
-            if not self.schema.is_valid(test_file):
-                try:
-                    self.schema.validate(test_file)
-                except xmlschema.validators.exceptions.XMLSchemaValidationError as e:
-                    print("Validation of message definition file '{}' failed!".format(os.path.relpath(test_file)))
-                    reason = ""
-                    if e.reason is not None:
-                        reason += "Reason: {}".format(e.reason)
-                    if e.path is not None:
-                        reason += " At path '{}':".format(e.path)
-                    print(reason)
-                    if xmlschema.etree.is_etree_element(e.elem):
-                        print("\n{}".format(xmlschema.etree.etree_tostring(e.elem, e.namespaces, '', 5)))
-                # schema validation should pass
-                self.fail('Test case file "{}" failed schema validation when it should have passed!'.format(test_file))
+
+@pytest.mark.parametrize("filename", schema_success_files)
+def test_success_cases(filename):
+    test_file = os.path.join(success_test_case_dir, filename)
+    try:
+        assert schema.is_valid(
+            test_file
+        ), f"Test case file '{filename}' failed schema validation when it should have passed"
+    except xmlschema.validators.exceptions.XMLSchemaValidationError as e:
+        err_msg = f"Validation of message definition file '{filename}'. "
+        if e.reason is not None:
+            err_msg += f"Reason: {e.reason}"
+        if e.path is not None:
+            err_msg += f" at path '{e.path}'"
+        if xmlschema.etree.is_etree_element(e.elem):
+            err_msg += f"\n{xmlschema.etree.etree_tostring(e.elem, e.namespaces, '', 5)}"
+
+        assert False, err_msg

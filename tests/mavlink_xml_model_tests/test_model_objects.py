@@ -10,63 +10,64 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import unittest, os
+import os, sys
+
+script_dir = os.path.dirname(__file__)
+sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..", "..")))
+
 from mavlib_gen.validator import *
 import xmlschema
 
-TEST_CASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'test_cases'))
+TEST_CASE_DIR = os.path.abspath(os.path.join(script_dir, "test_cases"))
+mav_schema_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "mavlib_gen", "schema"))
+schema = xmlschema.XMLSchema11(
+    os.path.join(mav_schema_dir, "mavlink_schema.xsd"), base_url=mav_schema_dir
+)
 
-class TestModelObject(unittest.TestCase):
-    """Verify XMLs are imported into the model objects properly"""
 
+def test_enum_import():
+    """Verify enum values are properly imported into model objects"""
+    xml_to_test = "simple_enum.xml"
+    validator = MavlinkXmlValidator()
+    simple_enum_xml = os.path.join(TEST_CASE_DIR, xml_to_test)
+    enumXmlTruth = schema.to_dict(simple_enum_xml)
+    modelObjs = validator.validate([simple_enum_xml])
+    assert modelObjs is not None
 
-    def setUp(self):
-        self.validator = MavlinkXmlValidator()
-        self.script_dir = os.path.dirname(__file__)
-        base_url = os.path.abspath(os.path.join(self.script_dir, '..', '..', 'mavlib_gen', 'schema'))
-        self.schema = xmlschema.XMLSchema11(os.path.join(base_url, 'mavlink_schema.xsd'), base_url=base_url)
+    mavXml = modelObjs.get(xml_to_test)
+    assert mavXml is not None
+    mavXml = mavXml.xml
+    assert len(enumXmlTruth["enums"]["enum"]) == len(mavXml.enums)
 
-    def test_simple_enum(self):
-        xml_to_test = 'simple_enum.xml'
-        simple_enum_xml = os.path.join(TEST_CASE_DIR, xml_to_test)
-        enumXmlTruth = self.schema.to_dict(simple_enum_xml)
-        modelObjs = self.validator.validate([simple_enum_xml])
-        self.assertIsNotNone(modelObjs)
-
-        mavXml = modelObjs.get(xml_to_test)
-        self.assertIsNotNone(mavXml)
-        mavXml = mavXml.xml
-        self.assertEqual(len(enumXmlTruth['enums']['enum']), len(mavXml.enums))
-
-        # verify each enum in the xml
-        for enum in mavXml.enums:
-            truthEnum = None
-            for eTruth in enumXmlTruth['enums']['enum']:
-                if enum.name == eTruth['@name']:
-                    truthEnum = eTruth
+    # verify each enum in the xml
+    for enum in mavXml.enums:
+        truthEnum = None
+        for eTruth in enumXmlTruth["enums"]["enum"]:
+            if enum.name == eTruth["@name"]:
+                truthEnum = eTruth
+                break
+        assert truthEnum is not None
+        assert truthEnum["description"] == enum.description
+        assert len(truthEnum["entry"]) == len(enum.entries)
+        # for each enum verify all its values
+        for entry in enum.entries:
+            truthEntry = None
+            for eTruth in truthEnum["entry"]:
+                if entry.name == eTruth["@name"]:
+                    truthEntry = eTruth
                     break
-            self.assertIsNotNone(truthEnum)
-            self.assertEqual(truthEnum['description'], enum.description)
-            self.assertEqual(len(truthEnum['entry']), len(enum.entries))
-            # for each enum verify all its values
-            for entry in enum.entries:
-                truthEntry = None
-                for eTruth in truthEnum['entry']:
-                    if entry.name == eTruth['@name']:
-                        truthEntry = eTruth
-                        break
-                self.assertIsNotNone(truthEntry)
-                self.assertEqual(truthEntry['description'], entry.description)
-                self.assertEqual(truthEntry['@value'], entry.value)
+            assert truthEntry is not None
+            assert truthEntry["description"] == entry.description
+            assert truthEntry["@value"] == entry.value
 
-                # check all param values if present
-                if 'param' in truthEntry:
-                    self.assertEqual(len(truthEntry['param']), len(entry.params))
-                    for param in entry.params:
-                        truthParam = None
-                        for pTruth in truthEntry['param']:
-                            if param.index == pTruth['@index']:
-                                truthParam = pTruth
-                                break
-                        self.assertIsNotNone(truthParam)
-                        self.assertEqual(truthParam['$'], param.description)
+            # check all param values if present
+            if "param" in truthEntry:
+                assert len(truthEntry["param"]) == len(entry.params)
+                for param in entry.params:
+                    truthParam = None
+                    for pTruth in truthEntry["param"]:
+                        if param.index == pTruth["@index"]:
+                            truthParam = pTruth
+                            break
+                    assert truthParam is not None
+                    assert truthParam["$"] == param.description

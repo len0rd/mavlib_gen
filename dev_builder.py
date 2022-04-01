@@ -18,6 +18,7 @@ import argparse, argcomplete
 import subprocess
 import logging
 from typing import List
+import pytest
 
 log = logging.getLogger("dev")
 
@@ -147,12 +148,8 @@ class UnitTestRunner:
 
     @classmethod
     def run(cls, args: argparse.Namespace) -> int:
-        from tests.test import run_all_tests
-
-        # set global logging level to critical to silence all the errors
-        # that the library (correctly) produces while being tested
-        logging.getLogger().setLevel(logging.CRITICAL)
-        return run_all_tests()
+        """Run unit tests"""
+        return pytest.main(["tests"])
 
 
 if __name__ == "__main__":
