@@ -24,6 +24,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          pip install .
+          pip install .[dev]
       - name: Test
         run: ./dev_builder.py test
