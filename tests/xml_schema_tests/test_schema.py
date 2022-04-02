@@ -1,3 +1,15 @@
+################################################################################
+# \file test_schema
+#
+# Test the XML schema without any other mavlib_gen code in the loop
+#
+# Copyright (c) 2022 len0rd
+#
+# All rights reserved.
+# This file is distributed under the terms of the MIT License.
+# See the file 'LICENSE' in the root directory of the present
+# distribution, or http://opensource.org/licenses/MIT.
+################################################################################
 import os
 import xmlschema
 import pytest

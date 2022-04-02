@@ -13,8 +13,15 @@
 import logging
 from typing import List
 from .validator import MavlinkXmlValidator
+from .lang_generators.generator_python import PythonLangGenerator
 
 # from .lang_generators.generator_base import AbstractLangGenerator
+
+log = logging.getLogger(__name__)
+
+GENERATOR_MAP = {
+    "python": PythonLangGenerator,
+}
 
 
 def generate(xmls: List[str], output_lang: str, output_location: str) -> bool:
@@ -23,18 +30,26 @@ def generate(xmls: List[str], output_lang: str, output_location: str) -> bool:
     @param xmls
         String list of filepaths to mavlink message definition xmls to generate messages from
     """
+
+    # input validation
+    output_lang = output_lang.lower()
+    if output_lang not in GENERATOR_MAP:
+        log.fatal(f"Desired output language '{output_lang}' not recognized")
+        return False
+
+    if xmls is None:
+        log.fatal("No valid Mavlink xml paths provided")
+        return False
+
     if not isinstance(xmls, list):
         xmls = [xmls]
 
     validator = MavlinkXmlValidator()
 
-    xml_dicts = validator.validate(xmls)
-    if xml_dicts is None:
-        print("Failed!")
-        return False  # failed to generate
+    validated_xmls = validator.validate(xmls)
+    if validated_xmls is None:
+        return False  # failed to validate
 
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    # generate('common.xml', 'c', 'test/')
-    generate("simple_msg.xml", "c", "test/")
+    # generate output
+    lang_generator = GENERATOR_MAP[output_lang]()
+    return lang_generator.generate(validated_xmls, output_location)

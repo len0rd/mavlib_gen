@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test that all valid message field types are accepted by the schema -->
+<!-- This test also confirms field name, msg id and msg name uniqueness is enforced by the schema -->
+<mavlink>
+    <messages>
+        <message id="1" name="TEST">
+            <description>This is the standard test message</description>
+            <field name="testfield0" type="int8_t">Test field</field>
+            <field name="testfield1" type="uint8_t">Test field</field>
+            <field name="testfield2" type="int16_t">Test field</field>
+            <field name="testfield3" type="uint16_t">Test field</field>
+            <field name="testfield4" type="int32_t">Test field</field>
+            <field name="testfield5" type="uint32_t">Test field</field>
+            <field name="testfield6" type="int64_t">Test field</field>
+            <field name="testfield7" type="uint64_t">Test field</field>
+            <field name="testfield8" type="float">Test field</field>
+            <field name="testfield9" type="double">Test field</field>
+            <field name="testfield10" type="char">Test field</field>
+            <field name="testfield11" type="uint8_t_mavlink_version">Test field</field>
+        </message>
+        <message id="2" name="TEST_ARR">
+            <description>This is the standard test message</description>
+            <field name="testfield0" type="int8_t[2]">Test field</field>
+            <field name="testfield1" type="uint8_t[5]">Test field</field>
+            <field name="testfield2" type="int16_t[10]">Test field</field>
+            <field name="testfield3" type="uint16_t[10]">Test field</field>
+            <field name="testfield4" type="int32_t[25]">Test field</field>
+            <field name="testfield5" type="uint32_t[10]">Test field</field>
+            <field name="testfield6" type="int64_t[10]">Test field</field>
+            <field name="testfield7" type="uint64_t[10]">Test field</field>
+            <field name="testfield8" type="float[7]">Test field</field>
+            <field name="testfield9" type="double[10]">Test field</field>
+            <field name="testfield10" type="char[10]">Test field</field>
+        </message>
+    </messages>
+</mavlink>

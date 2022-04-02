@@ -113,3 +113,5 @@ class PythonLangGenerator(AbstractLangGenerator):
                         generate_message_struct_pack_str=generate_message_struct_pack_str,
                     )
                 )
+
+        return True
