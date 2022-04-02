@@ -14,7 +14,48 @@ from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
 import os
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict
-from ..model.mavlink_xml import MavlinkXmlFile
+from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
+
+
+# map of supported mavlink types -> python struct pack types
+TYPE_TO_STRUCT_FORMAT_MAP = {
+    "uint64_t": "Q",
+    "int64_t": "q",
+    "double": "d",
+    "uint32_t": "I",
+    "int32_t": "i",
+    "float": "f",
+    "uint16_t": "H",
+    "int16_t": "h",
+    "uint8_t": "B",
+    "int8_t": "b",
+    "char": "c",
+    "uint8_t_mavlink_version": "B",
+    "str": "s",  # custom type set by helper method when dealing with char array
+}
+
+
+def generate_field_pack_str(field: MavlinkXmlMessageField) -> str:
+    """Format a single mavlink message field into a python struct.pack field"""
+    struct_pack_str = ""
+    field_type = field.base_type
+    if field.is_array:
+        struct_pack_str += f"{field.array_len}"
+        if field.base_type == "char":
+            field_type = "str"
+    struct_pack_str += f"{TYPE_TO_STRUCT_FORMAT_MAP[field_type]}"
+    return struct_pack_str
+
+
+def generate_message_struct_pack_str(message: MavlinkXmlMessage) -> str:
+    """
+    Format a messages fields into a string that can be used by pythons struct.pack
+    and struct.unpack methods
+    """
+    struct_pack_str = "<"  # TODO: little endian/big endian support
+    for field in message.all_fields_sorted:
+        struct_pack_str += generate_field_pack_str(field)
+    return struct_pack_str
 
 
 class PythonLangGenerator(AbstractLangGenerator):
@@ -69,5 +110,6 @@ class PythonLangGenerator(AbstractLangGenerator):
                         dialect_name_upper=dialect_name_upper,
                         messages=dialect.xml.messages,
                         use_properties=self.use_properties,
+                        generate_message_struct_pack_str=generate_message_struct_pack_str,
                     )
                 )

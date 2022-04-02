@@ -10,7 +10,7 @@ No additional features or tools will be included in this project.
 Language | Generator Status
 ---------|-----------------
 C        | 40%
-Python   | 0%
+Python   | 10%
 
 ## Features
 

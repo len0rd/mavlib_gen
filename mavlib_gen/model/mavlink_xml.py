@@ -429,6 +429,7 @@ class MavlinkXmlMessage(object):
         """the messages non-extension fields sorted in xml definition order"""
         return self._fields
 
+    # TODO: name change to fields_sorted?
     @property
     def sorted_fields(self) -> List[MavlinkXmlMessageField]:
         """
@@ -441,6 +442,20 @@ class MavlinkXmlMessage(object):
     def extension_fields(self) -> List[MavlinkXmlMessageField]:
         """the messages extension fields in xml definition order, if any"""
         return self._extension_fields
+
+    @property
+    def all_fields(self) -> List[MavlinkXmlMessageField]:
+        """Return all fields in a message, including its extension fields"""
+        all_fields = self._fields
+        all_fields.extend(self._extension_fields)
+        return all_fields
+
+    @property
+    def all_fields_sorted(self) -> List[MavlinkXmlMessageField]:
+        """All of the messages fields (including extension fields if any) in mavlink-order"""
+        all_sorted = self._sorted_fields
+        all_sorted.extend(self._extension_fields)
+        return all_sorted
 
     @property
     def crc_extra(self) -> int:
