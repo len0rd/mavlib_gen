@@ -1,0 +1,76 @@
+{#
+    This encapsulates the template to generate the python class for a single
+    MAVLink message. The hope is this can make it easier for 3rd parties to
+    override or extend the template as needed in the future
+#}
+
+class Message{{ msg.get_name("UpperCamel") }}(MavlinkMessage):
+    """
+    {{ msg.formatted_description("    ", False) }}
+    """
+
+    CRC_EXTRA = {{ msg.crc_extra }}
+    MSG_ID = {{ msg.id }}
+    NAME = "{{ msg.name }}"
+    FORMAT = "{{ generate_message_struct_pack_str(msg) }}"
+
+    def __init__(
+        self,
+        {% for field in msg.all_fields %}
+        {{ field.name }}: {{ field.get_type("python") }},
+        {% endfor %}
+    ):
+        super().__init__(self.MSG_ID)
+        {% for field in msg.all_fields %}
+        {% if use_properties %}
+        self._{{ field.name }} = {{ field.name }}
+        {% else %}
+        self.{{ field.name }} = {{ field.name }}
+        """{{ field.formatted_description("        ", False) }}"""
+        {% endif %}
+        {% endfor %}
+    {#
+    Optionally use properties for all fields because they can help with doc readability in code
+    editors and because it means we can support plugins for inserting custom
+    get/set logic in the future
+    #}
+    {% if use_properties %}
+    {% for field in msg.all_fields %}
+
+    @property
+    def {{ field.name }}(self) -> {{ field.get_type("python") }}:
+        """
+        {{ field.formatted_description("        ", False) }}
+        """
+        return self._{{ field.name }}
+
+    @{{ field.name }}.setter
+    def {{ field.name }}(self, new_{{ field.name }}: {{ field.get_type("python") }}) -> None:
+        self._{{ field.name }} = new_{{ field.name }}
+    {% endfor %}
+    {% endif %}
+
+    def pack(self, channel: MavlinkChannel) -> bytearray:
+        """Packs {{ msg.name }} into a serialized bytearray to be sent over the wire"""
+        # verify array objects are large enough that their packing will succeed
+        {% for field in msg.all_fields %}
+        {% if field.is_array %}
+        assert len(self.{{ field.name }}) >= {{ field.array_len }}
+        {% endif %}
+        {% endfor %}
+
+        {% if msg.num_fields > 0 %}
+        payload_bytes = struct.pack(
+            self.FORMAT,
+            {% for field in msg.all_fields_sorted %}
+            {% if field.is_array %}
+            *self.{{ field.name }}[:{{ field.array_len }}],
+            {% else %}
+            self.{{field.name}},
+            {% endif %}
+            {% endfor %}
+        )
+        {% else %}
+        payload_bytes = bytearray()
+        {% endif %}
+        return super()._pack(channel, payload_bytes, self.CRC_EXTRA)

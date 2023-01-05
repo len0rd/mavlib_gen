@@ -251,10 +251,11 @@ class MavlinkMessage(ABC):
         self.header.set_from_channel(channel)
 
         # Mavlink 2 supports 0-trimming payloads
-        serialized_payload = serialized_payload.rstrip(0x00)
+        if len(serialized_payload) > 0:
+            serialized_payload = serialized_payload.rstrip(0x00)
         self.header.payload_length = len(serialized_payload)
         packed_msg = self.header.pack() + serialized_payload
         msg_crc = x25crc(packed_msg[1:])
         msg_crc.accumulate_str(struct.pack("B", crc_extra))
-        packed_msg += struct.pack("<H", msg_crc)
+        packed_msg += struct.pack("<H", msg_crc.crc)
         return packed_msg

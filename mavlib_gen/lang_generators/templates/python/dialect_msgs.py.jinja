@@ -4,72 +4,9 @@ from mavlink_types import MavlinkMessage, MavlinkChannel
 from typing import List
 import struct
 
-
 {% for msg in messages %}
-class Message{{ msg.get_name("UpperCamel") }}(MavlinkMessage):
-    """
-    {{ msg.formatted_description("    ", False) }}
-    """
+{% include 'single_message.py.jinja' %}
 
-    CRC_EXTRA = {{ msg.crc_extra }}
-    MSG_ID = {{ msg.id }}
-    NAME = "{{ msg.name }}"
-    FORMAT = "{{ generate_message_struct_pack_str(msg) }}"
-
-    def __init__(self,
-        {% for field in msg.all_fields %}
-        {{ field.name }}: {{ field.get_type("python") }},
-        {% endfor %}
-    ):
-        super().__init__(self.MSG_ID)
-        {% for field in msg.all_fields %}
-        {% if use_properties %}
-        self._{{ field.name }} = {{ field.name }}
-        {% else %}
-        self.{{ field.name }} = {{ field.name }}
-        """{{ field.formatted_description("        ", False) }}"""
-        {% endif %}
-        {% endfor %}
-
-    {#
-    Using properties for all fields because it helps with doc readability in code
-    editors and because it means we can support plugins for inserting custom
-    get/set logic in the future
-    #}
-    {% if use_properties %}
-    {% for field in msg.all_fields %}
-    @property
-    def {{ field.name }}(self) -> {{ field.get_type("python") }}:
-        """
-        {{ field.formatted_description("        ", False) }}
-        """
-        return self._{{ field.name }}
-
-    @{{ field.name }}.setter
-    def {{ field.name }}(self, new_{{ field.name }}: {{ field.get_type("python") }}) -> None:
-        self._{{ field.name }} = new_{{ field.name }}
-    {% endfor %}
-    {% endif %}
-
-    def pack(self, channel: MavlinkChannel) -> bytearray:
-        """Packs {{ msg.name }} into a serialized bytearray to be sent over the wire"""
-        # verify array objects are large enough that their packing will succeed
-        {% for field in msg.all_fields %}
-        {% if field.is_array %}
-        assert len(self.{{ field.name }}) >= {{ field.array_len }}
-        {% endif %}
-        {% endfor %}
-        payload_bytes = struct.pack(
-            self.FORMAT,
-            {% for field in msg.all_fields_sorted %}
-            {% if field.is_array %}
-            *self.{{ field.name }}[:{{ field.array_len }}],
-            {% else %}
-            self.{{field.name}},
-            {% endif %}
-            {% endfor %}
-        )
-        return super._pack(channel, payload_bytes, self.CRC_EXTRA)
 
 {% endfor %}
 # Map of Mavlink message ids for this dialect -> Message types

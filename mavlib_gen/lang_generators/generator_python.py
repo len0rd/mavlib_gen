@@ -11,7 +11,7 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
-import os
+import os, shutil
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
@@ -52,7 +52,8 @@ def generate_message_struct_pack_str(message: MavlinkXmlMessage) -> str:
     Format a messages fields into a string that can be used by pythons struct.pack
     and struct.unpack methods
     """
-    struct_pack_str = "<"  # TODO: little endian/big endian support
+    # TODO: little endian/big endian support
+    struct_pack_str = "<" if message.num_fields > 0 else ""
     for field in message.all_fields_sorted:
         struct_pack_str += generate_field_pack_str(field)
     return struct_pack_str
@@ -113,5 +114,11 @@ class PythonLangGenerator(AbstractLangGenerator):
                         generate_message_struct_pack_str=generate_message_struct_pack_str,
                     )
                 )
+
+        # copy over types
+        file_to_cp = "mavlink_types.py"
+        mavlink_types_src = os.path.join(self.template_dir, file_to_cp)
+        mavlink_types_dst = os.path.join(output_dir, file_to_cp)
+        shutil.copyfile(mavlink_types_src, mavlink_types_dst)
 
         return True

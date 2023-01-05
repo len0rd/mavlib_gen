@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Include various message type/compositions-->
+<mavlink>
+    <messages>
+        <message id="1" name="EMPTY_MSG">
+            <description>Empty message</description>
+        </message>
+        <message id="2" name="ALL_FIELD_TYPES">
+            <description>This message uses every possible base type</description>
+            <field name="testfield0" type="int8_t">Test field</field>
+            <field name="testfield1" type="uint8_t">Test field</field>
+            <field name="testfield2" type="int16_t">Test field</field>
+            <field name="testfield3" type="uint16_t">Test field</field>
+            <field name="testfield4" type="int32_t">Test field</field>
+            <field name="testfield5" type="uint32_t">Test field</field>
+            <field name="testfield6" type="int64_t">Test field</field>
+            <field name="testfield7" type="uint64_t">Test field</field>
+            <field name="testfield8" type="float">Test field</field>
+            <field name="testfield9" type="double">Test field</field>
+            <field name="testfield10" type="char">Test field</field>
+            <field name="testfield11" type="uint8_t_mavlink_version">Test field</field>
+        </message>
+        <message id="3" name="ALL_ARRAY_TYPES">
+            <description>This message uses every possible array type</description>
+            <field name="testfield0" type="int8_t[2]">Test field</field>
+            <field name="testfield1" type="uint8_t[5]">Test field</field>
+            <field name="testfield2" type="int16_t[10]">Test field</field>
+            <field name="testfield3" type="uint16_t[10]">Test field</field>
+            <field name="testfield4" type="int32_t[25]">Test field</field>
+            <field name="testfield5" type="uint32_t[10]">Test field</field>
+            <field name="testfield6" type="int64_t[10]">Test field</field>
+            <field name="testfield7" type="uint64_t[10]">Test field</field>
+            <field name="testfield8" type="float[7]">Test field</field>
+            <field name="testfield9" type="double[10]">Test field</field>
+            <field name="testfield10" type="char[10]">Test field</field>
+        </message>
+        <message id="4" name="EXTENSION_FIELDS">
+            <description>This message includes extension fields</description>
+            <field name="testfield0" type="int8_t">Test field</field>
+            <field name="testfield1" type="uint8_t">Test field</field>
+            <field name="testfield2" type="int16_t">Test field</field>
+            <extensions />
+            <field name="ext_field0" type="int8_t">Test field</field>
+            <field name="ext_field1" type="uint8_t">Test field</field>
+        </message>
+    </messages>
+</mavlink>

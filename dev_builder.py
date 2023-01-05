@@ -147,6 +147,9 @@ class UnitTestRunner:
         test_subparser.add_argument(
             "-c", "--cov", action="store_true", help="Produce coverate report"
         )
+        test_subparser.add_argument(
+            "-v", "--verbose", action="store_true", default=False, help="Run tests verbosely"
+        )
 
         test_subparser.set_defaults(func=UnitTestRunner.run)
 
@@ -154,6 +157,8 @@ class UnitTestRunner:
     def run(cls, args: argparse.Namespace) -> int:
         """Run unit tests"""
         pytest_args = ["tests/"]
+        if args.verbose:
+            pytest_args.append("-v")
         if args.cov:
             pytest_args.extend(["--cov=mavlib_gen/", "--cov-report=xml"])
         return pytest.main(pytest_args)
