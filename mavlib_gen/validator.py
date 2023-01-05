@@ -170,10 +170,6 @@ class MavlinkXmlValidator(object):
         if xsve.path is not None:
             reason += " At path '{}':".format(xsve.path)
         log.error(reason)
-        if xmlschema.etree.is_etree_element(xsve.elem):
-            log.error(
-                "\n{}".format(xmlschema.etree.etree_tostring(xsve.elem, xsve.namespaces, "", 5))
-            )
 
     def is_msg_def_unique(
         self, msg_def: MavlinkXmlFile, other_msg_defs: Dict[str, MavlinkXmlFile]
