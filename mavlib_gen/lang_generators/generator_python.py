@@ -11,7 +11,8 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
-import os, shutil
+import os
+import shutil
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
