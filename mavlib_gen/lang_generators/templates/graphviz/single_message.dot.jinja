@@ -1,0 +1,51 @@
+{#
+    This is a template to generate a graphviz diagram for a single MAVLink message
+#}
+
+{# 
+    Max number of characters max number of characters that can fit in
+    one byte column. Used to decide if a newline needs to be injected into the field name
+#}
+
+digraph Message{{ msg.get_name("UpperCamel") }} {
+    node [shape = plaintext; fontname = Monospace;];
+
+    {% if include_label %}
+    labelloc="t"
+    label="{{ msg.name }}"
+    {% endif %}
+
+    table [label = <
+        <table border="1" cellspacing="0">
+            <!-- Byte indicator row -->
+            <tr>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">0</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">1</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">2</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">3</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">4</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">5</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">6</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">7</td>
+            </tr>
+            {% if include_framing %}
+                <tr>
+                    <td colspan="1" align="left">stx</td>
+                    <td colspan="1" align="left">len</td>
+                    <td colspan="1" align="left">inc_flags</td>
+                    <td colspan="1" align="left">cmp_flags</td>
+                    <td colspan="1" align="left">seq</td>
+                    <td colspan="1" align="left">sys_id</td>
+                    <td colspan="1" align="left">comp_id</td>
+                    <td colspan="1" align="left">msgid</td>
+                </tr>
+            {% endif %}
+
+            {%- filter indent(width=12) %}
+            {{ field_str }}
+            {%- endfilter%}
+
+        </table>
+    > ]
+
+}

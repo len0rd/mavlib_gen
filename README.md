@@ -7,10 +7,11 @@ No additional features or tools will be included in this project.
 
 ## Language Support
 
-Language | Generator Status
----------|-----------------
-C        | 40%
-Python   | 10%
+Language | Generator Status | Notes
+---------|------------------|------
+C        | 40%              |
+Python   | 10%              |
+Graphviz | 60%              | Generates message structure diagrams for documentation
 
 ## Features
 
@@ -42,3 +43,8 @@ library will work as expected with every update
 
 Proper release versioning means compatibility can break between major versions. This becomes
 increasingly important as the project ages to help keep code uncluttered and readable.
+
+## TODO
+
+- [ ] yaml-based generation configuration
+- [ ] Use `@dataclass` for python-generated message classes

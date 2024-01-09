@@ -316,6 +316,8 @@ class MavlinkXmlValidator(object):
         - Expand the validated_xmls dictionary from just the input xmls to all xmls they include
           using @ref expand_includes
         - Generate a dependency list for all xmls using @ref generate_dependency_list
+
+        :return: Dictionary of XML filename -> MavlinkXmlFile object (deserialized version of XML file)
         """
 
         # first validate and load up all the xml files specified in the input parameter

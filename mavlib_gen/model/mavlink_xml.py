@@ -439,7 +439,8 @@ class MavlinkXmlMessage(object):
     def sorted_fields(self) -> List[MavlinkXmlMessageField]:
         """
         the messages non-extension fields sorted in mavlink-order. The contents
-        is the same as @ref fields, just in a different order
+        is the same as @ref fields, just in the byte/serialization order that will be used
+        over the wire
         """
         return self._sorted_fields
 

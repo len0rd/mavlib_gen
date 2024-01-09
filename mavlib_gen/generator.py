@@ -14,6 +14,7 @@ import logging
 from typing import List
 from .validator import MavlinkXmlValidator
 from .lang_generators.generator_python import PythonLangGenerator
+from .lang_generators.generator_graphviz import GraphvizLangGenerator
 
 # from .lang_generators.generator_base import AbstractLangGenerator
 
@@ -21,6 +22,7 @@ log = logging.getLogger(__name__)
 
 GENERATOR_MAP = {
     "python": PythonLangGenerator,
+    "graphviz": GraphvizLangGenerator
 }
 
 
