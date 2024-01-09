@@ -24,7 +24,7 @@ dependencies = [
 # dependencies for development
 dev = [
     # black is used for code-formatting
-    "black>=21.11b0,<22.*",
+    "black",
     # flake8 is used for style enforcement
     "flake8",
     "flake8-annotations",
