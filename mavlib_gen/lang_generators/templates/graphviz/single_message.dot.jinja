@@ -39,6 +39,9 @@ digraph Message{{ msg.get_name("UpperCamel") }} {
                     <td colspan="1" align="left">comp_id</td>
                     <td colspan="1" align="left">msgid</td>
                 </tr>
+                <tr>
+                    <td colspan="2" align="left">...</td>
+                {# Theres special handling for this incomplete row case in the python code #}
             {% endif %}
 
             {%- filter indent(width=12) %}

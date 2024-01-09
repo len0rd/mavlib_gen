@@ -14,7 +14,7 @@ from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
 import os
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict, List, Tuple
-from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage
+from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
 import re
 
 
@@ -49,10 +49,16 @@ class GraphvizLangGenerator(AbstractLangGenerator):
         """
         # each column represents 1 byte in the diagram
         clmns_available = num_cols
-        out = "<tr>\n"
+        if self.include_framing:
+            out = ""
+            clmns_available -= 2
+        else:
+            out = "<tr>\n"
         color = self.FIELD_COLORS[0]
 
-        def append_field(field, field_color, clmns_available) -> Tuple[str, int]:
+        def append_field(
+            field: MavlinkXmlMessageField, field_color: str, clmns_available: int
+        ) -> Tuple[str, int]:
             """
             build the graphviz table string for a single message field. Handles case
             where the message field occupies more than 1 row of the diagram
@@ -123,6 +129,9 @@ class GraphvizLangGenerator(AbstractLangGenerator):
             color = self.FIELD_COLORS[0] if color == self.FIELD_COLORS[1] else self.FIELD_COLORS[1]
             field_str, clmns_available = append_field(field, color, clmns_available)
             out += field_str
+        # TODO: handle adding CRC
+        # if self.include_framing:
+        #     field_str, clmns_available = append_field("")
 
         # then append extension fields with different colors (if any)
         if len(msg.extension_fields) > 0:
