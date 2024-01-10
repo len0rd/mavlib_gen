@@ -30,6 +30,20 @@ class AbstractLangGenerator(ABC):
         """
         pass
 
+    @classmethod
+    @abstractmethod
+    def config_schema(cls) -> Dict[any, any]:
+        """
+        Return a python schema dictionary of configuration options for this generator. This will be
+        used to validate a user-provided yaml configuration file before running any generation
+
+        In general your schema should:
+            - make all configuration options optional with sensible defaults in place. The top-level
+              schema builder assumes a generator can be provided with no options and still function
+            - include a description for user documentation
+        """
+        pass
+
     @abstractmethod
     def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
         """

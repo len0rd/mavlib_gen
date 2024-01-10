@@ -7,4 +7,5 @@ exclude = __pycache__
 # ANN101: 'self' does not have a type hint
 # ANN204: Missing return type for special method (like '__init__')
 # W503: Line break before binary operator. Done by black formatter
-ignore = E203,E128,ANN101,ANN204,W503
+# ANN102: 'cls' does not have a type hint in classmethod
+ignore = E203,E128,ANN101,ANN204,W503,ANN102

@@ -12,10 +12,11 @@
 ################################################################################
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 from .validator import MavlinkXmlValidator
 from .lang_generators.generator_python import PythonLangGenerator
 from .lang_generators.generator_graphviz import GraphvizLangGenerator
+from schema import Optional, Literal, Or
 
 # from .lang_generators.generator_base import AbstractLangGenerator
 
@@ -25,6 +26,22 @@ GENERATOR_MAP = {
     "python": PythonLangGenerator,
     "graphviz": GraphvizLangGenerator,
 }
+
+
+def yaml_schema() -> Dict[any, any]:
+    """
+    Get YAML schema for the mavgen generation component. Includes schema for all language generators
+    """
+    lang_schemas = {}
+    for lang_name, lang_cls in GENERATOR_MAP.items():
+        lang_schemas[
+            Optional(Literal(lang_name, description=f"generate Mavlink in {lang_name}"))
+        ] = Or(lang_cls.config_schema(), None)
+    return {
+        Optional(
+            Literal("generate", description="Root element for configuring Mavlink generation")
+        ): lang_schemas
+    }
 
 
 def generate(xmls: List[str], output_lang: str, output_location: str) -> bool:

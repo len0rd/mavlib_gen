@@ -16,6 +16,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict, Tuple
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
 import re
+from schema import Optional, Literal
 
 
 class GraphvizLangGenerator(AbstractLangGenerator):
@@ -40,6 +41,25 @@ class GraphvizLangGenerator(AbstractLangGenerator):
 
     def lang_name(self) -> str:
         return "graphviz"
+
+    @classmethod
+    def config_schema(cls) -> Dict[any, any]:
+        return {
+            Optional(
+                Literal(
+                    "include_framing",
+                    description="Set to true for generated message diagrams to"
+                    + "include the MAVLink packet header bytes (msgid, len, crc, etc)",
+                )
+            ): bool,
+            Optional(
+                Literal(
+                    "include_label",
+                    description="Set to false to remove the message name label from generated"
+                    + "message diagrams",
+                )
+            ): bool,
+        }
 
     def generate_table_rows(self, msg: MavlinkXmlMessage, num_cols: int) -> str:
         """
