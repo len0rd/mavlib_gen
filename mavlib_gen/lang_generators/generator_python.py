@@ -16,7 +16,7 @@ import shutil
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
-
+from schema import Optional, Literal
 
 # map of supported mavlink types -> python struct pack types
 TYPE_TO_STRUCT_FORMAT_MAP = {
@@ -72,6 +72,17 @@ class PythonLangGenerator(AbstractLangGenerator):
 
     def lang_name(self) -> str:
         return "python"
+
+    @classmethod
+    def config_schema(cls) -> Dict[any, any]:
+        return {
+            Optional(
+                Literal(
+                    "use_properties",
+                    description="Use python properties for all fields for improved documentation",
+                )
+            ): bool,
+        }
 
     def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
         # TODO: move boilerplate checks up to ABC
