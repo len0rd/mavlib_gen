@@ -2,11 +2,6 @@
     This is a template to generate a graphviz diagram for a single MAVLink message
 #}
 
-{# 
-    Max number of characters max number of characters that can fit in
-    one byte column. Used to decide if a newline needs to be injected into the field name
-#}
-
 digraph Message{{ msg.get_name("UpperCamel") }} {
     node [shape = plaintext; fontname = Monospace;];
 

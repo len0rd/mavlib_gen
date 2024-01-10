@@ -13,9 +13,9 @@
 import os, sys, shutil, time
 
 script_dir = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..", "..", "..")))
+repo_root_dir = os.path.abspath(os.path.join(script_dir, "..", "..", ".."))
+sys.path.insert(0, repo_root_dir)
 
-from typing import Union, List
 from mavlib_gen.generator import generate
 
 # when True, generated files will not be deleted on module teardown
@@ -38,3 +38,12 @@ TEST_MSG_DEF = os.path.abspath(os.path.join(script_dir, "..", "test_cases", f"{D
 def test_graphviz_diagram():
     """For now just testing that generating the diagrams doesnt cause a crash"""
     assert generate(TEST_MSG_DEF, "graphviz", TESTGEN_OUTPUT_BASE_DIR)
+
+
+def test_inc_tree_diagram():
+    files = ["top_level.xml", "top_level2.xml"]
+    complex_tree_folder = os.path.join(repo_root_dir, "tests", "xml_validator_tests", "test_cases")
+    abs_files = [
+        os.path.join(complex_tree_folder, "pass", "complex_include_graph", fname) for fname in files
+    ]
+    assert generate(abs_files, "graphviz", TESTGEN_OUTPUT_BASE_DIR)

@@ -81,8 +81,10 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                         0,
                         re.DOTALL,
                     )
-                field_str += f'    <td colspan="{clmns_available}" \
-                    align="left" bgcolor="{field_color}">{name}</td>\n'
+                field_str += (
+                    f'    <td colspan="{clmns_available}"'
+                    + f' align="left" bgcolor="{field_color}">{name}</td>\n'
+                )
 
                 # start the next row
                 unwritten_len -= clmns_available
@@ -116,8 +118,10 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                         0,
                         re.DOTALL,
                     )
-                field_str += f'    <td colspan="{field.field_len}" \
-                    align="left" bgcolor="{field_color}">{name}</td>\n'
+                field_str += (
+                    f'    <td colspan="{field.field_len}"'
+                    + f' align="left" bgcolor="{field_color}">{name}</td>\n'
+                )
                 clmns_available -= field.field_len
 
             # start a new row if necessary
@@ -178,9 +182,20 @@ class GraphvizLangGenerator(AbstractLangGenerator):
         )
         msg_diagram_template = jenv.get_template("single_message.dot.jinja")
 
+        # first generate XML file include tree (if there are multiple xmls)
+        if len(validated_xmls) > 1:
+            include_tree_template = jenv.get_template("xml_include_tree.dot.jinja")
+            include_tree_file = os.path.join(output_dir, "xml_include_tree.dot")
+            with open(include_tree_file, "w") as inc_tree_out:
+                inc_tree_out.write(include_tree_template.render(xmlfiles=validated_xmls.values()))
+
         for name, dialect in validated_xmls.items():
             if name.endswith(".xml"):
                 name = name[:-4]
+
+            if len(dialect.xml.messages) == 0:
+                # no messages to generate for this xml file. continue before dir is made
+                continue
 
             dialect_out_dir = os.path.join(output_dir, name.lower())
 
@@ -199,4 +214,4 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                         )
                     )
 
-            return True
+        return True

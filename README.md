@@ -11,7 +11,7 @@ Language | Generator Status | Notes
 ---------|------------------|------
 C        | 40%              |
 Python   | 10%              |
-Graphviz | 60%              | Generates message structure diagrams for documentation
+Graphviz | 90%              | Generates message structure diagrams for documentation
 
 ## Features
 

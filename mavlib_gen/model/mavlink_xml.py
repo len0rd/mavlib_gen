@@ -572,6 +572,14 @@ class MavlinkXml(object):
         """List of all enums contained in this mavlink dialect xml"""
         return self._enums
 
+    @property
+    def include_names(self) -> List[str]:
+        """
+        String list of files inside this XMLs `<include>` tags, without any paths, just the
+        base filename
+        """
+        return [os.path.basename(fname) for fname in self.includes]
+
     def __enumerate_messages(self, messages_data_elem: DataElement) -> None:
         """Used during construction to import message definitions into the object"""
         for child in messages_data_elem:

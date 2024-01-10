@@ -1,0 +1,20 @@
+{#
+    This template generates a graphviz diagram of the mavlink xml file include tree of the parsed
+    XML files
+#}
+
+digraph MavlinkXmlDependencies {
+    {% for xml in xmlfiles %}
+    "{{xml.filename}}"[label="{{xml.filename}}"];
+    {% endfor %}
+
+    {# Generate include graph. This uses xml.includes which is a list of the user-specified
+        include tags inside the XML #}
+    {% for xmlfile in xmlfiles %}
+    {% if xmlfile.xml.includes is not none %}
+    {% for inc in xmlfile.xml.include_names %}
+    "{{ xmlfile.filename }}" -> "{{ inc }}";
+    {% endfor %}
+    {% endif %}
+    {% endfor %}
+}
