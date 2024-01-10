@@ -233,15 +233,26 @@ class MavlinkXmlEnum(object):
 
 
 class MavlinkXmlMessageField(object):
-    def __init__(self, field_elem: DataElement):
-        self.description = field_elem.text
-        if self.description is not None:
-            self.description = str(self.description).strip()
+    def __init__(
+        self,
+        field_elem: DataElement = None,
+        name: str = None,
+        typename: str = None,
+        description: str = None,
+    ):
+        if field_elem is not None:
+            self.description = field_elem.text
+            if self.description is not None:
+                self.description = str(self.description).strip()
 
-        # set any element attributes as object attributes (should set 'name' and 'type' attributes
-        # for a field at a minimum) may also include 'units', 'instance', 'enum' etc
-        for k, v in field_elem.attrib.items():
-            setattr(self, k, v)
+            # set any element attributes as object attributes (should set 'name' and 'type' attributes
+            # for a field at a minimum) may also include 'units', 'instance', 'enum' etc
+            for k, v in field_elem.attrib.items():
+                setattr(self, k, v)
+        elif name is not None:
+            self.name = name
+            self.type = typename
+            self.description = description
 
         self.__determine_type_attributes()
 

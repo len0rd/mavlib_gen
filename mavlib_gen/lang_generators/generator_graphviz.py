@@ -129,9 +129,6 @@ class GraphvizLangGenerator(AbstractLangGenerator):
             color = self.FIELD_COLORS[0] if color == self.FIELD_COLORS[1] else self.FIELD_COLORS[1]
             field_str, clmns_available = append_field(field, color, clmns_available)
             out += field_str
-        # TODO: handle adding CRC
-        # if self.include_framing:
-        #     field_str, clmns_available = append_field("")
 
         # then append extension fields with different colors (if any)
         if len(msg.extension_fields) > 0:
@@ -143,6 +140,13 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                 )
                 field_str, clmns_available = append_field(field, color, clmns_available)
                 out += field_str
+        if self.include_framing:
+            # if framing bytes are included add crc to the very end
+            crc = MavlinkXmlMessageField(
+                name="crc", typename="uint16_t", description="CRC of data bytes"
+            )
+            field_str, clmns_available = append_field(crc, "white", clmns_available)
+            out += field_str
 
         if out.endswith("<tr>\n"):
             # just started a new row but it will be empty which causes an error, remove it
