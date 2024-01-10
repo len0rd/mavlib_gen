@@ -13,7 +13,7 @@
 from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
 import os
 from jinja2 import Environment, PackageLoader, select_autoescape
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
 import re
 
@@ -27,7 +27,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
     FIELD_COLORS = ["lightgrey", "lightyellow"]
     EXTENSION_FIELD_COLORS = ["darkseagreen1", "darkseagreen"]
 
-    def __init__(self, include_framing=False, include_label=True):
+    def __init__(self, include_framing: bool = False, include_label: bool = True):
         """
         :param include_framing: Include MAVLink packet framing bytes in the diagram
             (crc, msgid, len, etc)
@@ -75,13 +75,14 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                     # handle situation where field name is too long for its first-row cell
                     # allocation (add newlines)
                     name = re.sub(
-                        f"(.{{{max_field_name_len_per_line}}})",
+                        f"(.{{{max_field_name_len_first_line}}})",
                         "\\1<br />",
                         field.name,
                         0,
                         re.DOTALL,
                     )
-                field_str += f'    <td colspan="{clmns_available}" align="left" bgcolor="{field_color}">{name}</td>\n'
+                field_str += f'    <td colspan="{clmns_available}" \
+                    align="left" bgcolor="{field_color}">{name}</td>\n'
 
                 # start the next row
                 unwritten_len -= clmns_available
@@ -115,7 +116,8 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                         0,
                         re.DOTALL,
                     )
-                field_str += f'    <td colspan="{field.field_len}" align="left" bgcolor="{field_color}">{name}</td>\n'
+                field_str += f'    <td colspan="{field.field_len}" \
+                    align="left" bgcolor="{field_color}">{name}</td>\n'
                 clmns_available -= field.field_len
 
             # start a new row if necessary
