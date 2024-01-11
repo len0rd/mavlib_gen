@@ -11,16 +11,15 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os, sys, shutil, time
+import sys, shutil, time
+from pathlib import Path
 
-script_dir = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..", "..")))
+script_dir = Path(__file__).parent.resolve()
+sys.path.insert(0, script_dir.parent.parent)
 
 from mavlib_gen.generator import generate, GENERATOR_MAP
 
-TEST_OUT_DIR = os.path.abspath(
-    os.path.join(script_dir, "..", "test_artifacts", str(int(time.time_ns() / 1000)))
-)
+TEST_OUT_DIR = script_dir.parent / "test_artifacts" / str(int(time.time_ns() / 1000))
 
 # since these are high-level smoke tests, it doesnt matter what lang is used
 VALID_OUTPUT_LANG = list(GENERATOR_MAP.keys())[0]
@@ -28,7 +27,7 @@ VALID_OUTPUT_LANG = list(GENERATOR_MAP.keys())[0]
 
 def teardown_module(module):
     """pytest module teardown. remove any generated mavlink files"""
-    if os.path.isdir(TEST_OUT_DIR):
+    if TEST_OUT_DIR.is_dir():
         shutil.rmtree(TEST_OUT_DIR)
 
 
@@ -42,11 +41,11 @@ def test_generator_bad_inputs():
 
 def test_no_gen_on_validation_fail():
     """Verify if XML validation fails, no files are generated"""
-    invalid_file = os.path.join(script_dir, "test_cases", "invalid_mavlink.xml")
+    invalid_file = script_dir / "test_cases" / "invalid_mavlink.xml"
     assert not generate(invalid_file, VALID_OUTPUT_LANG, TEST_OUT_DIR)
 
 
 def test_gen_with_valid_file():
     """verify if the file is valid, generate returns true"""
-    valid_file = os.path.join(script_dir, "test_cases", "valid_mavlink.xml")
+    valid_file = script_dir / "test_cases" / "valid_mavlink.xml"
     assert generate(valid_file, VALID_OUTPUT_LANG, TEST_OUT_DIR)

@@ -10,34 +10,28 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os
+from pathlib import Path
 import xmlschema
 import pytest
 
-script_dir = os.path.dirname(__file__)
-mav_schema_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "mavlib_gen", "schema"))
-schema = xmlschema.XMLSchema11(
-    os.path.join(mav_schema_dir, "mavlink_schema.xsd"), base_url=mav_schema_dir
-)
+script_dir = Path(__file__).parent.resolve()
+mav_schema_dir = script_dir.parent.parent / "mavlib_gen" / "schema"
+schema = xmlschema.XMLSchema11(mav_schema_dir / "mavlink_schema.xsd", base_url=mav_schema_dir)
 
-failure_test_case_dir = os.path.join(script_dir, "test_cases", "fail")
+failure_test_case_dir = script_dir / "test_cases" / "fail"
 schema_failure_files = [
-    f
-    for f in os.listdir(failure_test_case_dir)
-    if os.path.isfile(os.path.join(failure_test_case_dir, f))
+    f for f in failure_test_case_dir.iterdir() if (Path(failure_test_case_dir) / f).is_file()
 ]
 
-success_test_case_dir = os.path.join(script_dir, "test_cases", "pass")
+success_test_case_dir = script_dir / "test_cases" / "pass"
 schema_success_files = [
-    f
-    for f in os.listdir(success_test_case_dir)
-    if os.path.isfile(os.path.join(success_test_case_dir, f))
+    f for f in success_test_case_dir.iterdir() if (Path(success_test_case_dir) / f).is_file()
 ]
 
 
 @pytest.mark.parametrize("filename", schema_failure_files)
 def test_failure_cases(filename):
-    test_file = os.path.join(failure_test_case_dir, filename)
+    test_file = failure_test_case_dir / filename
     assert not schema.is_valid(
         test_file
     ), f"Test case file '{filename}' passed schema validation when it should have failed"
@@ -45,7 +39,7 @@ def test_failure_cases(filename):
 
 @pytest.mark.parametrize("filename", schema_success_files)
 def test_success_cases(filename):
-    test_file = os.path.join(success_test_case_dir, filename)
+    test_file = success_test_case_dir / filename
     try:
         assert schema.is_valid(
             test_file

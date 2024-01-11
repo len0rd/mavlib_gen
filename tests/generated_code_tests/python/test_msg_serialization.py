@@ -11,29 +11,26 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os, sys, shutil, time
+import sys, shutil, time
+from pathlib import Path
 
-script_dir = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..", "..", "..")))
+script_dir = Path(__file__).parent.resolve()
+sys.path.insert(0, script_dir.parent.parent.parent.absolute())
 
 from typing import Union, List
 from mavlib_gen.generator import generate
 
 # when True, generated files will not be deleted on module teardown
 DEBUG_MODE = True
-TESTGEN_OUTPUT_BASE_DIR = os.path.abspath(
-    os.path.join(
-        script_dir,
-        "..",
-        "..",
-        "test_artifacts",
-        f"pygen_msg_tests{str(int(time.time_ns() / 1000))}",
-    )
+TESTGEN_OUTPUT_BASE_DIR = (
+    script_dir.parent.parent
+    / "test_artifacts"
+    / f"pygen_msg_tests{str(int(time.time_ns() / 1000))}"
 )
 
 DIALECT_NAME = "message_type_tests"
 
-TEST_MSG_DEF = os.path.abspath(os.path.join(script_dir, "..", "test_cases", f"{DIALECT_NAME}.xml"))
+TEST_MSG_DEF = script_dir.parent / "test_cases" / f"{DIALECT_NAME}.xml"
 
 
 def generate_mavlib(file_in: Union[List[str], str], dir_out: str) -> bool:
@@ -43,12 +40,12 @@ def generate_mavlib(file_in: Union[List[str], str], dir_out: str) -> bool:
 def setup_module(module):
     """pytest module setup. Generate the code that will be under test"""
     assert generate(TEST_MSG_DEF, "python", TESTGEN_OUTPUT_BASE_DIR)
-    sys.path.insert(0, TESTGEN_OUTPUT_BASE_DIR)
+    sys.path.insert(0, TESTGEN_OUTPUT_BASE_DIR.as_posix())
 
 
 def teardown_module(module):
     """pytest module teardown. remove all auto-generated files"""
-    if os.path.isdir(TESTGEN_OUTPUT_BASE_DIR) and not DEBUG_MODE:
+    if TESTGEN_OUTPUT_BASE_DIR.is_dir() and not DEBUG_MODE:
         shutil.rmtree(TESTGEN_OUTPUT_BASE_DIR)
 
 
