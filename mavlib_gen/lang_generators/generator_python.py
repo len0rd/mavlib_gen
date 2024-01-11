@@ -11,7 +11,7 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
-import os
+from pathlib import Path
 import shutil
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict
@@ -67,26 +67,22 @@ class PythonLangGenerator(AbstractLangGenerator):
             attributes. This means in generated message objects, fields will have get/set methods
             that can provide greater type enforcement and doc string retrieval compatibility
         """
-        script_dir = os.path.dirname(__file__)
-        self.template_dir = os.path.abspath(os.path.join(script_dir, "templates", "python"))
+        self.template_dir = Path(__file__).parent.resolve() / "templates" / "python"
         self.use_properties = use_properties
 
     def lang_name(self) -> str:
         return "python"
 
-    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: str) -> bool:
+    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
         # TODO: move boilerplate checks up to ABC
+        output_dir = Path(output_dir)
         if validated_xmls is None or len(validated_xmls) == 0 or output_dir is None:
             return False
 
-        if not os.path.exists(output_dir) or not os.path.isdir(output_dir):
-            print("create dir {}".format(output_dir))
-            os.mkdir(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         jenv = Environment(
-            loader=PackageLoader(
-                "mavlib_gen", package_path=os.path.join("lang_generators", "templates", "python")
-            ),
+            loader=PackageLoader("mavlib_gen", package_path=self.template_dir),
             autoescape=select_autoescape(),
             # trim whitespace thats automatically inserted for jinja template blocks
             trim_blocks=True,
@@ -103,8 +99,7 @@ class PythonLangGenerator(AbstractLangGenerator):
             dialect_name_lower = dialect_name.lower()
             dialect_name_upper = dialect_name.upper()
 
-            filename = f"{dialect_name_lower}_msgs.py"
-            file_path = os.path.join(output_dir, filename)
+            file_path = output_dir / f"{dialect_name_lower}_msgs.py"
             with open(file_path, "w") as msgs_file_out:
                 msgs_file_out.write(
                     dialect_msgs_template.render(
@@ -118,8 +113,8 @@ class PythonLangGenerator(AbstractLangGenerator):
 
         # copy over types
         file_to_cp = "mavlink_types.py"
-        mavlink_types_src = os.path.join(self.template_dir, file_to_cp)
-        mavlink_types_dst = os.path.join(output_dir, file_to_cp)
+        mavlink_types_src = self.template_dir / file_to_cp
+        mavlink_types_dst = output_dir / file_to_cp
         shutil.copyfile(mavlink_types_src, mavlink_types_dst)
 
         return True

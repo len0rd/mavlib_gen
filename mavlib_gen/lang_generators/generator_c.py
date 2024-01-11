@@ -10,7 +10,7 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os
+from pathlib import Path
 import logging
 import re
 from .generator_base import AbstractLangGenerator
@@ -28,9 +28,8 @@ log = logging.getLogger(__name__)
 
 class CLangGenerator(AbstractLangGenerator):
     def __init__(self):
-        script_dir = os.path.dirname(__file__)
-        self.template_dir = os.path.abspath(os.path.join(script_dir, "templates", "c"))
-        self.msg_def_format = os.path.join(self.template_dir, "message_definition.h.in")
+        self.template_dir = Path(__file__).parent.resolve() / "templates" / "c"
+        self.msg_def_format = self.template_dir / "message_definition.h.in"
 
     DOC_COMMENT_PREPEND = " * "
     # number of spaces that comprise a standard indent
@@ -41,13 +40,12 @@ class CLangGenerator(AbstractLangGenerator):
     def lang_name(self) -> str:
         return "c"
 
-    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: str) -> bool:
+    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
+        output_dir = Path(output_dir)
         if validated_xmls is None or len(validated_xmls) == 0 or output_dir is None:
             return False
 
-        if not os.path.exists(output_dir) or not os.path.isdir(output_dir):
-            print("create dir {}".format(output_dir))
-            os.mkdir(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         for name, dialect_def in validated_xmls.items():
             successfully_generated = self.generate_single_xml(dialect_def, output_dir)
@@ -57,8 +55,7 @@ class CLangGenerator(AbstractLangGenerator):
 
         return True
 
-    def generate_single_xml(self, dialect: MavlinkXmlFile, outdir: str) -> bool:
-
+    def generate_single_xml(self, dialect: MavlinkXmlFile, outdir: Path) -> bool:
         # place generated files within a subdirectory of outdir. the subdirectory
         # is named based on the xml filename
         dialect_name = dialect.filename
@@ -67,11 +64,10 @@ class CLangGenerator(AbstractLangGenerator):
 
         dialect_name_lower = dialect_name.lower()
 
-        gen_dir = os.path.abspath(os.path.join(outdir, dialect_name_lower))
+        gen_dir = outdir / dialect_name_lower
         print("{} generating in {}".format(dialect.filename, gen_dir))
 
-        if not os.path.exists(gen_dir) or not os.path.isdir(gen_dir):
-            os.mkdir(gen_dir)
+        gen_dir.mkdir(parents=True, exist_ok=True)
 
         xml = dialect.xml
         # first generate messages
@@ -94,13 +90,13 @@ class CLangGenerator(AbstractLangGenerator):
         return True
 
     def __generate_xml_msg_include(
-        self, dialect_name_lower: str, msgs: List[MavlinkXmlMessage], outdir: str
+        self, dialect_name_lower: str, msgs: List[MavlinkXmlMessage], outdir: Path
     ) -> None:
         """
         Generates the dialects message include file. This header is simply
         a collection of include statements for all messages in the dialect
         """
-        dialect_msg_include_format = os.path.join(self.template_dir, "dialect_msgs.h.in")
+        dialect_msg_include_format = self.template_dir / "dialect_msgs.h.in"
 
         # generate an include string for each message
         msg_c_includes = []
@@ -113,9 +109,8 @@ class CLangGenerator(AbstractLangGenerator):
 
         # generate the XMLs message include. This .h includes all messages in this dialect ONLY
         include_string_out = "\n".join([msg_inc for msg_inc in msg_c_includes])
-        dialect_msgs_file_out = os.path.abspath(
-            os.path.join(outdir, "{}_msgs.h".format(dialect_name_lower))
-        )
+        dialect_msgs_file_out = outdir / "{}_msgs.h".format(dialect_name_lower)
+
         with open(dialect_msg_include_format, "r") as dialect_msgs_format_file:
             formatter = dialect_msgs_format_file.read()
             with open(dialect_msgs_file_out, "w") as dialect_msgs_out:
@@ -127,7 +122,7 @@ class CLangGenerator(AbstractLangGenerator):
                     )
                 )
 
-    def __generate_msg(self, msg_def: MavlinkXmlMessage, formatter: str, outdir: str) -> bool:
+    def __generate_msg(self, msg_def: MavlinkXmlMessage, formatter: str, outdir: Path) -> bool:
         """
         Generate a single message using 'formatter' as the format string and placing
         the resulting output in 'outdir'
@@ -144,9 +139,7 @@ class CLangGenerator(AbstractLangGenerator):
         else:
             formatted_msg_desc = self.DOC_COMMENT_PREPEND + msg_name_lower + " struct definition"
 
-        mdef_file_out = os.path.abspath(
-            os.path.join(outdir, self.MSG_DEF_FILENAME_FORMAT.format(msg_name_lower))
-        )
+        mdef_file_out = outdir / self.MSG_DEF_FILENAME_FORMAT.format(msg_name_lower)
 
         # write out the definition file
         with open(mdef_file_out, "w") as out_file:
@@ -222,16 +215,14 @@ class CLangGenerator(AbstractLangGenerator):
         return raw_desc
 
     def __generate_enums(
-        self, enums: List[MavlinkXmlEnum], outdir: str, dialect_name_lower: str
+        self, enums: List[MavlinkXmlEnum], outdir: Path, dialect_name_lower: str
     ) -> bool:
         """
         Generate all enums for a single dialect into a header file
         """
         ENUM_FORMATTER = "{doc_string}typedef enum {enum_name}_t {{\n{enum_entries}\n}};\n"
-        dialect_enums_format = os.path.join(self.template_dir, "dialect_enums.h.in")
-        dialect_enums_file_out = os.path.abspath(
-            os.path.join(outdir, "{}_enums.h".format(dialect_name_lower))
-        )
+        dialect_enums_format = self.template_dir / "dialect_enums.h.in"
+        dialect_enums_file_out = outdir / "{}_enums.h".format(dialect_name_lower)
 
         all_enums = ""
 

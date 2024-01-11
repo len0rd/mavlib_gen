@@ -10,13 +10,13 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os
 import logging
 import operator
 from typing import List
 from xmlschema.dataobjects import DataElement
 import crcmod
 import re
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -578,7 +578,7 @@ class MavlinkXml(object):
         String list of files inside this XMLs `<include>` tags, without any paths, just the
         base filename
         """
-        return [os.path.basename(fname) for fname in self.includes]
+        return [Path(fname).name for fname in self.includes]
 
     def __enumerate_messages(self, messages_data_elem: DataElement) -> None:
         """Used during construction to import message definitions into the object"""
@@ -610,7 +610,7 @@ class MavlinkXmlFile(object):
         ('/home/len0rd/common.xml') and the schema-validated xml object
         """
         self.absolute_path = absolute_path
-        self.filename = os.path.basename(absolute_path)
+        self.filename = Path(absolute_path).name
         self._xml = xml
         self.dependencies = None
 

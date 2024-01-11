@@ -2,7 +2,7 @@
 
 [![Library checks](https://github.com/len0rd/mavlib_gen/actions/workflows/base.yml/badge.svg?branch=main&event=push)](https://github.com/len0rd/mavlib_gen/actions/workflows/base.yml) [![Library coverage](https://codecov.io/gh/len0rd/mavlib_gen/branch/main/graph/badge.svg?token=4HDIQKTBN8)](https://codecov.io/gh/len0rd/mavlib_gen)
 
-A mavlink generator with a permissive MIT license. This project is for a MAVLink generator ONLY.
+A [MAVLink](https://mavlink.io/en/) generator with a permissive MIT license. This project is for a MAVLink generator ONLY.
 No additional features or tools will be included in this project.
 
 ## Language Support
@@ -48,3 +48,4 @@ increasingly important as the project ages to help keep code uncluttered and rea
 
 - [ ] yaml-based generation configuration
 - [ ] Use `@dataclass` for python-generated message classes
+- [ ] migrate to Pathlib

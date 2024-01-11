@@ -11,6 +11,7 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 import logging
+from pathlib import Path
 from typing import List
 from .validator import MavlinkXmlValidator
 from .lang_generators.generator_python import PythonLangGenerator
@@ -22,7 +23,7 @@ log = logging.getLogger(__name__)
 
 GENERATOR_MAP = {
     "python": PythonLangGenerator,
-    "graphviz": GraphvizLangGenerator
+    "graphviz": GraphvizLangGenerator,
 }
 
 
@@ -54,4 +55,5 @@ def generate(xmls: List[str], output_lang: str, output_location: str) -> bool:
 
     # generate output
     lang_generator = GENERATOR_MAP[output_lang]()
-    return lang_generator.generate(validated_xmls, output_location)
+    outdir = Path(output_location)
+    return lang_generator.generate(validated_xmls, outdir)
