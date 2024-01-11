@@ -7,11 +7,12 @@ No additional features or tools will be included in this project.
 
 ## Language Support
 
-Language | Generator Status | Notes
----------|------------------|------
-C        | 40%              |
-Python   | 10%              |
-Graphviz | 90%              | Generates message structure diagrams for documentation
+Language     | Generator Status | Notes
+-------------|------------------|------
+C            | 40%              |
+Python       | 10%              |
+Graphviz     | 90%              | Generates message structure diagrams for documentation
+Embedded C++ | 10%              | C++ implementation with no STL or dynamic allocation usage
 
 ## Features
 
@@ -48,4 +49,3 @@ increasingly important as the project ages to help keep code uncluttered and rea
 
 - [ ] yaml-based generation configuration
 - [ ] Use `@dataclass` for python-generated message classes
-- [ ] migrate to Pathlib
