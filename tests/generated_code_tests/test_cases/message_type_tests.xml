@@ -6,8 +6,16 @@
             <description>Empty message</description>
         </message>
         <message id="2" name="ALL_FIELD_TYPES">
-            <description>This message uses every possible base type</description>
-            <field name="testfield0" type="int8_t">Test field</field>
+            <description>
+            This message uses every possible base type
+            and even has some nice and long comments
+            that go across multiple lines
+            </description>
+            <field name="testfield0" type="int8_t">
+                Test field with a nice long description
+                that spans multiple lines eyyyyy!
+                    some more info
+            </field>
             <field name="testfield1" type="uint8_t">Test field</field>
             <field name="testfield2" type="int16_t">Test field</field>
             <field name="testfield3" type="uint16_t">Test field</field>
