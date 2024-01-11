@@ -1,11 +1,12 @@
-import pytest, os, sys
+import pytest, sys
+from pathlib import Path
 
-script_dir = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..", "..")))
+script_dir = Path(__file__).parent.resolve()
+sys.path.insert(0, script_dir.parent.parent)
 from mavlib_gen.validator import *
 import networkx as netx
 
-TEST_CASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_cases"))
+TEST_CASE_DIR = script_dir / "test_cases"
 
 
 @pytest.fixture
@@ -56,9 +57,7 @@ def test_msg_def_unique(validator):
 def setup_complex_tree_top_xmls(validator):
     """setup the top-level xmls for the complex include tree tests"""
     files = ["top_level.xml", "top_level2.xml"]
-    abs_files = [
-        os.path.join(TEST_CASE_DIR, "pass", "complex_include_graph", fname) for fname in files
-    ]
+    abs_files = [TEST_CASE_DIR / "pass" / "complex_include_graph" / fname for fname in files]
     validated = [validator.validate_single_xml(fname) for fname in abs_files]
     validated_complex_xmls = dict(zip(files, validated))
     for fname, xml in validated_complex_xmls.items():
@@ -69,7 +68,7 @@ def setup_complex_tree_top_xmls(validator):
 
 def test_invalid_include_path(validator):
     """include path pointing to non-existent file should fail"""
-    good_xml_path = os.path.join(TEST_CASE_DIR, "fail", "invalid_include.xml")
+    good_xml_path = TEST_CASE_DIR / "fail" / "invalid_include.xml"
     good_xml = validator.validate_single_xml(good_xml_path)
     assert good_xml is not None
     result = validator.expand_includes({good_xml.filename: good_xml})
@@ -79,7 +78,7 @@ def test_invalid_include_path(validator):
 def test_xml_with_no_include(validator):
     """expand_includes should do nothing if xmls dont have include tags"""
     filename = "no_includes.xml"
-    includeless_xml_path = os.path.join(TEST_CASE_DIR, "pass", filename)
+    includeless_xml_path = TEST_CASE_DIR / "pass" / filename
     includeless_xml = validator.validate_single_xml(includeless_xml_path)
     assert includeless_xml is not None
     xmls_in = {includeless_xml.filename: includeless_xml}
@@ -156,9 +155,7 @@ def msg_id_name_validator():
 def setup_msg_info(validator):
     """setup the top-level xmls for a complex include tree test"""
     files = ["top_level.xml", "top_level2.xml"]
-    abs_files = [
-        os.path.join(TEST_CASE_DIR, "pass", "complex_include_graph", fname) for fname in files
-    ]
+    abs_files = [TEST_CASE_DIR / "pass" / "complex_include_graph" / fname for fname in files]
     validated = [validator.validate_single_xml(fname) for fname in abs_files]
     validated_complex_xmls = dict(zip(files, validated))
     result = validator.expand_includes(validated_complex_xmls)
@@ -174,7 +171,7 @@ def test_empty_dict(msg_id_name_validator):
 
 
 def test_single_xml(validator, msg_id_name_validator):
-    mdef = validator.validate_single_xml(os.path.join(TEST_CASE_DIR, "pass", "no_includes.xml"))
+    mdef = validator.validate_single_xml(TEST_CASE_DIR / "pass" / "no_includes.xml")
     assert mdef is not None
     assert msg_id_name_validator.validate({mdef.filename: mdef}, netx.DiGraph())
 
@@ -188,7 +185,7 @@ def test_few_messages(validator, msg_id_name_validator):
 def test_conflicting_ids(validator, msg_id_name_validator):
     """verify returns False when a msg id conflicts"""
     top_xml = validator.validate_single_xml(
-        os.path.join(TEST_CASE_DIR, "fail", "include_with_conflicting_msgid", "top.xml")
+        TEST_CASE_DIR / "fail" / "include_with_conflicting_msgid" / "top.xml"
     )
     assert top_xml is not None
 
@@ -201,7 +198,7 @@ def test_conflicting_ids(validator, msg_id_name_validator):
 def test_conflicting_names(validator, msg_id_name_validator):
     """verify returns False when a msg name conflicts"""
     top_xml = validator.validate_single_xml(
-        os.path.join(TEST_CASE_DIR, "fail", "include_with_conflicting_msgname", "top.xml")
+        TEST_CASE_DIR / "fail" / "include_with_conflicting_msgname" / "top.xml"
     )
     assert top_xml is not None
     result = validator.expand_includes({top_xml.filename: top_xml})

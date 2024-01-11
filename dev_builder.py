@@ -19,10 +19,11 @@ import subprocess
 import logging
 from typing import List
 import pytest
+from pathlib import Path
 
 log = logging.getLogger("dev")
 
-SCRIPT_ROOT = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+SCRIPT_ROOT = Path(__file__).parent.resolve()
 
 LOG_LEVELS = {
     "debug": logging.DEBUG,
@@ -52,8 +53,8 @@ class DocumentationBuilder:
 
     AVAILABLE_SUBCOMMANDS = ["build", "autobuild", "check", "clean"]
 
-    doc_source_path = os.path.join(SCRIPT_ROOT, "docs")
-    doc_build_path = os.path.join(doc_source_path, "_build")
+    doc_source_path = SCRIPT_ROOT / "docs"
+    doc_build_path = doc_source_path / "_build"
 
     @staticmethod
     def add_arguments(subparser: argparse._SubParsersAction) -> None:
@@ -78,18 +79,32 @@ class DocumentationBuilder:
         Run documentation builder with the provided arguments
         """
         if args.build_type == "build":
-            command = ["sphinx-build", "-bhtml", cls.doc_source_path, cls.doc_build_path]
+            command = [
+                "sphinx-build",
+                "-bhtml",
+                cls.doc_source_path.as_posix(),
+                cls.doc_build_path.as_posix(),
+            ]
             return run_check_call(command)
         elif args.build_type == "autobuild":
-            command = ["sphinx-autobuild", cls.doc_source_path, cls.doc_build_path]
+            command = [
+                "sphinx-autobuild",
+                cls.doc_source_path.as_posix(),
+                cls.doc_build_path.as_posix(),
+            ]
             return run_check_call(command)
         elif args.build_type == "clean":
-            if os.path.isdir(cls.doc_build_path):
+            if Path(cls.doc_build_path).is_dir():
                 shutil.rmtree(cls.doc_build_path)
             return 0
         elif args.build_type == "check":
             # run sphinx's link-check to verify validity of all external links
-            command = ["sphinx-build", "-blinkcheck", cls.doc_source_path, cls.doc_build_path]
+            command = [
+                "sphinx-build",
+                "-blinkcheck",
+                cls.doc_source_path.as_posix(),
+                cls.doc_build_path.as_posix(),
+            ]
             return run_check_call(command)
 
         log.fatal(f"Unknown build_type '{args.build_type}' for docs command")
@@ -101,8 +116,8 @@ class StyleChecker:
     Encapsulates running the command to check python library style
     """
 
-    flake_config_path = os.path.join(SCRIPT_ROOT, ".flake8")
-    library_path = os.path.join(SCRIPT_ROOT, "mavlib_gen")
+    flake_config_path = SCRIPT_ROOT / ".flake8"
+    library_path = SCRIPT_ROOT / "mavlib_gen"
 
     @staticmethod
     def add_arguments(subparser: argparse._SubParsersAction) -> None:
@@ -120,7 +135,12 @@ class StyleChecker:
 
     @classmethod
     def run(cls, args: argparse.Namespace) -> int:
-        command = ["flake8", "--config", cls.flake_config_path, cls.library_path]
+        command = [
+            "flake8",
+            "--config",
+            cls.flake_config_path.as_posix(),
+            cls.library_path.as_posix(),
+        ]
         ret_code = run_check_call(command)
         if ret_code == 0:
             log.info("Style checks passed!")
@@ -165,7 +185,6 @@ class UnitTestRunner:
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(prog="./dev_builder.py`")
     subparsers = parser.add_subparsers(dest="cmd")
     parser.add_argument(

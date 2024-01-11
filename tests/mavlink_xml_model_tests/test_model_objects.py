@@ -10,26 +10,25 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
-import os, sys
+import sys
+from pathlib import Path
 
-script_dir = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..", "..")))
+script_dir = Path(__file__).parent.resolve()
+sys.path.insert(0, script_dir.parent.parent)
 
 from mavlib_gen.validator import *
 import xmlschema
 
-TEST_CASE_DIR = os.path.abspath(os.path.join(script_dir, "test_cases"))
-mav_schema_dir = os.path.abspath(os.path.join(script_dir, "..", "..", "mavlib_gen", "schema"))
-schema = xmlschema.XMLSchema11(
-    os.path.join(mav_schema_dir, "mavlink_schema.xsd"), base_url=mav_schema_dir
-)
+TEST_CASE_DIR = script_dir / "test_cases"
+mav_schema_dir = script_dir.parent.parent / "mavlib_gen" / "schema"
+schema = xmlschema.XMLSchema11(mav_schema_dir / "mavlink_schema.xsd", base_url=mav_schema_dir)
 
 
 def test_enum_import():
     """Verify enum values are properly imported into model objects"""
     xml_to_test = "simple_enum.xml"
     validator = MavlinkXmlValidator()
-    simple_enum_xml = os.path.join(TEST_CASE_DIR, xml_to_test)
+    simple_enum_xml = TEST_CASE_DIR / xml_to_test
     enumXmlTruth = schema.to_dict(simple_enum_xml)
     modelObjs = validator.validate([simple_enum_xml])
     assert modelObjs is not None
