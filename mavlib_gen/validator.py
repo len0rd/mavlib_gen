@@ -11,9 +11,8 @@
 # See the file 'LICENSE' in the root directory of the present
 # distribution, or http://opensource.org/licenses/MIT.
 #################################################################################
-import os
+from pathlib import Path
 import logging
-import re
 import xmlschema
 from xml.etree import ElementTree
 import networkx as netx
@@ -114,10 +113,9 @@ class MavlinkXmlValidator(object):
     """
 
     def __init__(self):
-        script_dir = os.path.dirname(__file__)
-        base_url = os.path.abspath(os.path.join(script_dir, "schema"))
+        base_url = Path(__file__).parent.resolve() / "schema"
         self.schema = xmlschema.XMLSchema11(
-            os.path.join(base_url, "mavlink_schema.xsd"),
+            base_url / "mavlink_schema.xsd",
             base_url=base_url,
             converter=xmlschema.DataElementConverter,
         )
@@ -136,7 +134,8 @@ class MavlinkXmlValidator(object):
         Validate an individual xml.
         TODO: validation needs to be performed on combined/included xmls (no msgid conflicts, etc)
         """
-        if not os.path.isfile(xml_filename):
+        xml_filepath = Path(xml_filename)
+        if not xml_filepath.is_file():
             log.error("Unable to locate '{}'".format(xml_filename))
             return None
 
@@ -147,23 +146,21 @@ class MavlinkXmlValidator(object):
             # TODO: take care of this at the converter level so we dont need intermediate xml_elem
             xml_model = MavlinkXml(xml_elem)
         except ElementTree.ParseError as parseErr:
-            log.error("Failed to parse '{}': {}".format(os.path.relpath(xml_filename), parseErr))
+            log.error(
+                "Failed to parse '{}': {}".format(xml_filepath.relative_to(Path.cwd()), parseErr)
+            )
             return None
         except xmlschema.validators.exceptions.XMLSchemaValidationError as xsve:
             self.__report_schama_validation_error(xsve, xml_filename)
             return None
         log.debug("{} passed validation".format(xml_filename))
-        return MavlinkXmlFile(os.path.abspath(xml_filename), xml_model)
+        return MavlinkXmlFile(xml_filepath.absolute(), xml_model)
 
     def __report_schama_validation_error(
         self, xsve: xmlschema.validators.exceptions.XMLSchemaValidationError, xml_filename: str
     ) -> None:
         """Helper method to report validation errors in a useful way that I like"""
-        log.error(
-            "Validation of message definition file '{}' failed!".format(
-                os.path.relpath(xml_filename)
-            )
-        )
+        log.error("Validation of message definition file '{}' failed!".format(xml_filename))
         reason = ""
         if xsve.reason is not None:
             reason += "Reason: {}".format(xsve.reason)
@@ -228,14 +225,10 @@ class MavlinkXmlValidator(object):
                         # NOTE: include_path is split on unix or windows path separator to ensure
                         #       the abs_include_path generated works for the current os
                         # TODO: verify windows path split still works
-                        split_include_path = re.split(r"[\\\/]", include_path)
-                        abs_include_path = os.path.abspath(
-                            os.path.join(
-                                os.path.dirname(validated_xmls[cur_dialect].absolute_path),
-                                *split_include_path,
-                            )
-                        )
-                        if not os.path.isfile(abs_include_path):
+                        abs_include_path = (
+                            Path(validated_xmls[cur_dialect].absolute_path).parent / include_path
+                        ).absolute()
+                        if not abs_include_path.is_file():
                             log.error(
                                 "Failed to resolve include '{}' in definition "
                                 "'{}' to a file".format(include_path, cur_dialect)

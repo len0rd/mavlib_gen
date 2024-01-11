@@ -13,6 +13,7 @@
 from abc import ABC, abstractmethod
 from ..model.mavlink_xml import MavlinkXmlFile
 from typing import Dict
+from pathlib import Path
 
 
 class AbstractLangGenerator(ABC):
@@ -30,7 +31,7 @@ class AbstractLangGenerator(ABC):
         pass
 
     @abstractmethod
-    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: str) -> bool:
+    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
         """
         Top-level generate method. Generates mavlink messages in the
         implemented language from the provided dialect file

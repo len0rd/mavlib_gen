@@ -11,7 +11,7 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
-import os
+from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict, Tuple
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
@@ -36,8 +36,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
         """
         self.include_framing = include_framing
         self.include_label = include_label
-        script_dir = os.path.dirname(__file__)
-        self.template_dir = os.path.abspath(os.path.join(script_dir, "templates", "graphviz"))
+        self.template_dir = Path(__file__).parent.resolve() / "templates" / "graphviz"
 
     def lang_name(self) -> str:
         return "graphviz"
@@ -163,14 +162,13 @@ class GraphvizLangGenerator(AbstractLangGenerator):
 
         return out
 
-    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: str) -> bool:
+    def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
         # TODO: move boilerplate checks up to ABC
+        output_dir = Path(output_dir)
         if validated_xmls is None or len(validated_xmls) == 0 or output_dir is None:
             return False
 
-        if not os.path.exists(output_dir) or not os.path.isdir(output_dir):
-            print("create dir {}".format(output_dir))
-            os.mkdir(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         jenv = Environment(
             loader=PackageLoader("mavlib_gen", package_path=self.template_dir),
@@ -185,7 +183,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
         # first generate XML file include tree (if there are multiple xmls)
         if len(validated_xmls) > 1:
             include_tree_template = jenv.get_template("xml_include_tree.dot.jinja")
-            include_tree_file = os.path.join(output_dir, "xml_include_tree.dot")
+            include_tree_file = output_dir / "xml_include_tree.dot"
             with open(include_tree_file, "w") as inc_tree_out:
                 inc_tree_out.write(include_tree_template.render(xmlfiles=validated_xmls.values()))
 
@@ -197,13 +195,12 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                 # no messages to generate for this xml file. continue before dir is made
                 continue
 
-            dialect_out_dir = os.path.join(output_dir, name.lower())
+            dialect_out_dir = output_dir / name.lower()
 
-            if not os.path.exists(dialect_out_dir) or not os.path.isdir(dialect_out_dir):
-                os.mkdir(dialect_out_dir)
+            dialect_out_dir.mkdir(parents=True, exist_ok=True)
 
             for msg in dialect.xml.messages:
-                msg_filename = os.path.join(dialect_out_dir, f"{msg.name}.dot")
+                msg_filename = dialect_out_dir / f"{msg.name}.dot"
                 with open(msg_filename, "w") as msg_file_out:
                     msg_file_out.write(
                         msg_diagram_template.render(
