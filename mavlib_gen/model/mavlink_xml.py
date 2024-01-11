@@ -86,7 +86,20 @@ def raw_str_formatter(str_in: str, line_prefix: str = None, leading_newline: boo
     return processed_str
 
 
-class MavlinkXmlEnumEntryParam(object):
+class MavlinkElementWithDescription(object):
+    """Base class for Mavlink model objects that have a description field"""
+
+    def formatted_description(self, line_prefix: str = None, leading_newline: bool = False) -> str:
+        """
+        Get a formatted version of this elements description. This mainly helps fix up multi-line
+        descriptions to look nice while hopefully preserving the desired look of the author
+        """
+        return raw_str_formatter(
+            self.description, line_prefix=line_prefix, leading_newline=leading_newline
+        )
+
+
+class MavlinkXmlEnumEntryParam(MavlinkElementWithDescription):
     """Represents a 'param' child within a mavlink XML enum entry"""
 
     def __init__(self, param_data_elem: DataElement):
@@ -125,7 +138,7 @@ class MavlinkXmlEnumEntryParam(object):
     # TODO: add other param values here as needed
 
 
-class MavlinkXmlEnumEntry(object):
+class MavlinkXmlEnumEntry(MavlinkElementWithDescription):
     """Represents an Enum entry/value within a mavlink XML enum"""
 
     def __init__(self, entry_data_elem: DataElement):
@@ -186,7 +199,7 @@ class MavlinkXmlEnumEntry(object):
         self._params.append(MavlinkXmlEnumEntryParam(param_data_elem))
 
 
-class MavlinkXmlEnum(object):
+class MavlinkXmlEnum(MavlinkElementWithDescription):
     """Represents a single enum as defined in a mavlink XML"""
 
     def __init__(self, enum_data_elem: DataElement):
@@ -232,7 +245,7 @@ class MavlinkXmlEnum(object):
         self._entries.append(MavlinkXmlEnumEntry(entry_data_elem))
 
 
-class MavlinkXmlMessageField(object):
+class MavlinkXmlMessageField(MavlinkElementWithDescription):
     def __init__(
         self,
         field_elem: DataElement = None,
@@ -330,15 +343,6 @@ class MavlinkXmlMessageField(object):
             return type_out
         return self.type
 
-    def formatted_description(self, line_prefix: str = None, leading_newline: bool = False) -> str:
-        """
-        Get a formatted version of this fields description. This mainly helps fix up multi-line
-        descriptions to look nice while hopefully preserving the desired look of the author
-        """
-        return raw_str_formatter(
-            self.description, line_prefix=line_prefix, leading_newline=leading_newline
-        )
-
     def __repr__(self):
         rep = "Field({}, type={}".format(self.name, self.type)
 
@@ -353,7 +357,7 @@ class MavlinkXmlMessageField(object):
         return rep
 
 
-class MavlinkXmlMessage(object):
+class MavlinkXmlMessage(MavlinkElementWithDescription):
     def __init__(self, message_data_elem: DataElement):
         # use properties of the same name (minus the leading '_') to get
         self._fields = []
@@ -425,15 +429,6 @@ class MavlinkXmlMessage(object):
     def description(self) -> str:
         """description string attached to the message"""
         return self._description
-
-    def formatted_description(self, line_prefix: str = None, leading_newline: bool = False) -> str:
-        """
-        Get a formatted version of this messages description. This mainly helps fix up multi-line
-        descriptions to look nice while hopefully preserving the desired look of the author
-        """
-        return raw_str_formatter(
-            self.description, line_prefix=line_prefix, leading_newline=leading_newline
-        )
 
     @property
     def fields(self) -> List[MavlinkXmlMessageField]:
@@ -621,6 +616,13 @@ class MavlinkXmlFile(object):
         model objects
         """
         return self._xml
+
+    @property
+    def name(self) -> str:
+        """
+        XML file basename (no path or extension)
+        """
+        return str(Path(self.filename).stem)
 
     def set_dependencies(self, deps: List[str]) -> None:
         """
