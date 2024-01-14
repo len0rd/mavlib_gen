@@ -48,9 +48,11 @@ class EmbCppLangGenerator(AbstractLangGenerator):
             lstrip_blocks=True,
         )
         msg_template = jenv.get_template("single_message.hpp.jinja")
+        enum_template = jenv.get_template("dialect_enums.hpp.jinja")
+        msg_list_template = jenv.get_template("dialect_msgs.hpp.jinja")
 
         for name, dialect in validated_xmls.items():
-            dialect_inc_dir = output_dir / "inc" / dialect.filename
+            dialect_inc_dir = output_dir / "inc" / dialect.get_name("lower_snake")
             dialect_inc_dir.mkdir(parents=True, exist_ok=True)
 
             # generate message headers
@@ -66,5 +68,13 @@ class EmbCppLangGenerator(AbstractLangGenerator):
                     )
 
             # generate all enums
+            enums_filename = dialect_inc_dir / f"{dialect.get_name('UpperCamel')}Enums.hpp"
+            with open(enums_filename, "w") as enum_hdr:
+                enum_hdr.write(enum_template.render(dialect=dialect))
+
+            # generate dialect message list header
+            msg_list_filename = dialect_inc_dir / f"{dialect.get_name('UpperCamel')}Msgs.hpp"
+            with open(msg_list_filename, "w") as msg_list_hdr:
+                msg_list_hdr.write(msg_list_template.render(dialect=dialect))
 
         return True

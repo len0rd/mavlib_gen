@@ -12,7 +12,7 @@ Language     | Generator Status | Notes
 C            | 40%              |
 Python       | 10%              |
 Graphviz     | 90%              | Generates message structure diagrams for documentation
-Embedded C++ | 10%              | C++ implementation with no STL or dynamic allocation usage
+Embedded C++ | 20%              | C++ implementation with no STL or dynamic allocation
 
 ## Features
 
