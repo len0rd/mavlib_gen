@@ -24,7 +24,12 @@ struct Payload{{ msg.get_name("UpperCamel") }} {
 {% if msg.has_extensions %}
     // extension fields:
 {% for field in msg.extension_fields %}
-    {{ field.type }} {{ field.name }};
+    /// {{ field.formatted_description(line_prefix="/// ") | indent }}
+    {% if field.is_array %}
+    {{ field.base_type }} {{ field.name }}[{{ field.array_len }}];
+    {% else %}
+    {{ field.base_type }} {{ field.name }};
+    {% endif %}
 {% endfor %}
 {% endif %}
 };

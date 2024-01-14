@@ -60,6 +60,7 @@ def raw_str_formatter(str_in: str, line_prefix: str = None, leading_newline: boo
     # remove leading_newline if one is not desired
     if not leading_newline and processed_str.lstrip(" ")[0] == "\n":
         processed_str = processed_str.lstrip(" ")[1:]
+    processed_str = processed_str.rstrip(" \n")
 
     if "\n" in processed_str:
         # attempt to solve for the common number of leading whitespace characters that are shared
@@ -97,6 +98,21 @@ class MavlinkElementWithDescription(object):
         return raw_str_formatter(
             self.description, line_prefix=line_prefix, leading_newline=leading_newline
         )
+
+
+class MavlinkElementWithName:
+    """Base class for Mavlink model objects that have a name field"""
+
+    def get_name(self, format: str) -> str:
+        """
+        :param format: specify the desired format to return the message name string in.
+            Available types:
+            'lower_snake' = lower snake case name (ie: "message_name")
+            'UPPER_SNAKE' = upper snake case name (ie: "MESSAGE_NAME")
+            'UpperCamel'  = upper camel case name (ie: "MessageName")
+            If none of these options are correctly provided, the raw name string is returned
+        """
+        return name_str_format_converter(self.name, format)
 
 
 class MavlinkXmlEnumEntryParam(MavlinkElementWithDescription):
@@ -138,7 +154,7 @@ class MavlinkXmlEnumEntryParam(MavlinkElementWithDescription):
     # TODO: add other param values here as needed
 
 
-class MavlinkXmlEnumEntry(MavlinkElementWithDescription):
+class MavlinkXmlEnumEntry(MavlinkElementWithDescription, MavlinkElementWithName):
     """Represents an Enum entry/value within a mavlink XML enum"""
 
     def __init__(self, entry_data_elem: DataElement):
@@ -193,13 +209,18 @@ class MavlinkXmlEnumEntry(MavlinkElementWithDescription):
         Defaults to empty list
         """
         return self._params
+    
+    @property
+    def has_params(self) -> bool:
+        """Return true if the entry has param fields, otherwise false"""
+        return len(self.params) > 0
 
     def __append_param(self, param_data_elem: DataElement) -> None:
         """Append a new param to this enum entry's list of params"""
         self._params.append(MavlinkXmlEnumEntryParam(param_data_elem))
 
 
-class MavlinkXmlEnum(MavlinkElementWithDescription):
+class MavlinkXmlEnum(MavlinkElementWithDescription, MavlinkElementWithName):
     """Represents a single enum as defined in a mavlink XML"""
 
     def __init__(self, enum_data_elem: DataElement):
@@ -245,7 +266,7 @@ class MavlinkXmlEnum(MavlinkElementWithDescription):
         self._entries.append(MavlinkXmlEnumEntry(entry_data_elem))
 
 
-class MavlinkXmlMessageField(MavlinkElementWithDescription):
+class MavlinkXmlMessageField(MavlinkElementWithDescription, MavlinkElementWithName):
     def __init__(
         self,
         field_elem: DataElement = None,
@@ -308,17 +329,6 @@ class MavlinkXmlMessageField(MavlinkElementWithDescription):
     def is_array(self) -> bool:
         return self.array_len > 0
 
-    def get_name(self, format: str) -> str:
-        """
-        :param format: specify the desired format to return the field name string in.
-            Available types:
-            'lower_snake' = lower snake case name (ie: "message_name")
-            'UPPER_SNAKE' = upper snake case name (ie: "MESSAGE_NAME")
-            'UpperCamel'  = upper camel case name (ie: "MessageName")
-            If none of these options are correctly provided, the raw name string is returned
-        """
-        return name_str_format_converter(self.name, format)
-
     def get_type(self, lang: str) -> str:
         """
         Get what the internal type of this field would be in the specified language
@@ -357,7 +367,7 @@ class MavlinkXmlMessageField(MavlinkElementWithDescription):
         return rep
 
 
-class MavlinkXmlMessage(MavlinkElementWithDescription):
+class MavlinkXmlMessage(MavlinkElementWithDescription, MavlinkElementWithName):
     def __init__(self, message_data_elem: DataElement):
         # use properties of the same name (minus the leading '_') to get
         self._fields = []
@@ -413,17 +423,6 @@ class MavlinkXmlMessage(MavlinkElementWithDescription):
     def name(self) -> str:
         """the unique message name"""
         return self._name
-
-    def get_name(self, format: str) -> str:
-        """
-        :param format: specify the desired format to return the message name string in.
-            Available types:
-            'lower_snake' = lower snake case name (ie: "message_name")
-            'UPPER_SNAKE' = upper snake case name (ie: "MESSAGE_NAME")
-            'UpperCamel'  = upper camel case name (ie: "MessageName")
-            If none of these options are correctly provided, the raw name string is returned
-        """
-        return name_str_format_converter(self.name, format)
 
     @property
     def description(self) -> str:
@@ -592,7 +591,7 @@ class MavlinkXml(object):
         return rep
 
 
-class MavlinkXmlFile(object):
+class MavlinkXmlFile(MavlinkElementWithName, object):
     """
     Top-level model object to contain information on a mavlink xml definition
     file including its parsed/validated @ref MavlinkXml object

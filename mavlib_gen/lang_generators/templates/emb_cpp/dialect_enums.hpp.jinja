@@ -5,9 +5,19 @@
 #define __MAVLINK_{{ dialect.name.upper() }}_ENUMS_HPP__
 
 {% for enum in dialect.xml.enums %}
+/// {{ enum.formatted_description(line_prefix="/// ") }}
 enum {{ enum.name }} {
     {% for entry in enum.entries %}
-        
+    /// {{ entry.formatted_description(line_prefix="/// ") | indent }}
+    {% if entry.has_params %}
+    ///
+    /// Param | Description
+    /// ------|------------
+    {% for param in entry.params %}
+    /// {{ "%5s" | format(param.index) }} | {{ param.formatted_description(line_prefix="///       | ") | indent}}
+    {% endfor %}
+    {% endif %}
+    {{ entry.name }} = {{ entry.value }},
     {% endfor %}
 };
 
