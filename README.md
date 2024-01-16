@@ -28,8 +28,8 @@ mavlink code from more advanced include trees, such as the one below.
 
 ![example_of_complex_tree](docs/_img/complex_include_tree_ex.svg)
 
-Such support allows developers to better separate/isolate specific modules of a
-messaging system. Thus avoiding large, hard to navigate definition files.
+Such support allows developers to better isolate specific modules of a
+MAVLink message system. Thus avoiding large, hard to navigate definition files.
 
 ### Simple, lean helper methods
 
@@ -49,3 +49,4 @@ increasingly important as the project ages to help keep code uncluttered and rea
 
 - [ ] yaml-based generation configuration
 - [ ] Use `@dataclass` for python-generated message classes
+- [ ]  generator option to only regen on CRC_EXTRA changes

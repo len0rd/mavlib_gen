@@ -209,7 +209,7 @@ class MavlinkXmlEnumEntry(MavlinkElementWithDescription, MavlinkElementWithName)
         Defaults to empty list
         """
         return self._params
-    
+
     @property
     def has_params(self) -> bool:
         """Return true if the entry has param fields, otherwise false"""
@@ -287,6 +287,10 @@ class MavlinkXmlMessageField(MavlinkElementWithDescription, MavlinkElementWithNa
             self.name = name
             self.type = typename
             self.description = description
+
+        # 0-based byte offset of where this field begins in a over-the-wire MAVLink payload
+        #   (offset doesnt include MAVLink header)
+        self.wire_offset = 0
 
         self.__determine_type_attributes()
 
@@ -410,6 +414,12 @@ class MavlinkXmlMessage(MavlinkElementWithDescription, MavlinkElementWithName):
 
         self.__reorder_fields()
 
+        # calculate field wire offset
+        current_wire_offset = 0
+        for field in self.all_fields_sorted:
+            field.wire_offset = current_wire_offset
+            current_wire_offset += field.field_len
+
         self.__calculate_crc_extra()
 
     # message properties:
@@ -457,15 +467,13 @@ class MavlinkXmlMessage(MavlinkElementWithDescription, MavlinkElementWithName):
     @property
     def all_fields(self) -> List[MavlinkXmlMessageField]:
         """Return all fields in a message, including its extension fields"""
-        all_fields = self._fields
-        all_fields.extend(self._extension_fields)
+        all_fields = self._fields + self._extension_fields
         return all_fields
 
     @property
     def all_fields_sorted(self) -> List[MavlinkXmlMessageField]:
         """All of the messages fields (including extension fields if any) in mavlink-order"""
-        all_sorted = self._sorted_fields
-        all_sorted.extend(self._extension_fields)
+        all_sorted = self._sorted_fields + self._extension_fields
         return all_sorted
 
     @property

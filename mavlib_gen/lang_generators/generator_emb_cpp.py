@@ -17,6 +17,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
+import shutil
 
 
 class EmbCppLangGenerator(AbstractLangGenerator):
@@ -76,5 +77,14 @@ class EmbCppLangGenerator(AbstractLangGenerator):
             msg_list_filename = dialect_inc_dir / f"{dialect.get_name('UpperCamel')}Msgs.hpp"
             with open(msg_list_filename, "w") as msg_list_hdr:
                 msg_list_hdr.write(msg_list_template.render(dialect=dialect))
+
+            # copy over static source files (non-template files that are part of the library)
+            static_sources = [
+                "MavlinkTypes.hpp",
+            ]
+            for src_filename in static_sources:
+                src_path = self.template_dir / src_filename
+                dest_path = output_dir / "inc" / src_filename
+                shutil.copyfile(src_path, dest_path)
 
         return True
