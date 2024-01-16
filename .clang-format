@@ -1,0 +1,6 @@
+# clang-format is used to enforce consistent formatting in c/cpp generated files
+BasedOnStyle: Chromium
+IndentWidth: 4
+Language: Cpp
+ColumnLimit: 100
+UseTab: Never
