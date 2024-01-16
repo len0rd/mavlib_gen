@@ -17,7 +17,7 @@ dependencies = [
     "jinja2>=3.0.3",
     # yaml and schema are used for user configuration
     "schema",
-    "pyyaml",
+    "ruamel.yaml",
     # for argument parsing/completion in CLI scripts
     "argparse",
     "argcomplete",

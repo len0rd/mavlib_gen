@@ -32,15 +32,22 @@ def yaml_schema() -> Dict[any, any]:
     """
     Get YAML schema for the mavgen generation component. Includes schema for all language generators
     """
-    lang_schemas = {}
+    generate_options = {}
+    generate_options[
+        Literal(
+            "outdir",
+            description="Output directory for generated files (will be created if necessary)",
+        )
+    ] = str
+    # append each possible generation language as an option
     for lang_name, lang_cls in GENERATOR_MAP.items():
-        lang_schemas[
+        generate_options[
             Optional(Literal(lang_name, description=f"generate Mavlink in {lang_name}"))
         ] = Or(lang_cls.config_schema(), None)
     return {
         Optional(
             Literal("generate", description="Root element for configuring Mavlink generation")
-        ): lang_schemas
+        ): generate_options
     }
 
 
