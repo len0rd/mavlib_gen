@@ -70,10 +70,6 @@ class Message{{ msg.get_name("UpperCamel") }} : public IMavlinkMessage {
 
     const MavlinkMsgDetails& getMsgDetails() const override { return DETAILS; }
 #endif
-  private:
-    {% for field in msg.all_fields_sorted %}
-    {{ field.name }}
-    {% endfor %}
 };
 
 {% if use_dialect_namespaces %}

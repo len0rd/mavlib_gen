@@ -1019,6 +1019,7 @@
             <field name="testfield9" type="double">Test field</field>
             <field name="testfield10" type="char">Test field</field>
             <field name="testfield11" type="uint8_t_mavlink_version">Test field</field>
+            <field name="enumField1" enum="MAV_AUTOPILOT"type="uint8_t">a field with an enum</field>
         </message>
         <message id="3" name="ALL_ARRAY_TYPES">
             <description>This message uses every possible array type</description>
