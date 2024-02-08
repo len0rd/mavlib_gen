@@ -8,3 +8,5 @@ A mavlink generator with a permissive MIT license.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   lang_emb_cpp
