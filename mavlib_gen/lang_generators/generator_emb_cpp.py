@@ -16,7 +16,7 @@ from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
 from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import Dict
-from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
+from ..model.mavlink_xml import MavlinkXmlFile
 import shutil
 
 
