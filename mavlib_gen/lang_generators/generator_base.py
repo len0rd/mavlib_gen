@@ -44,6 +44,23 @@ class AbstractLangGenerator(ABC):
         """
         pass
 
+    @classmethod
+    @abstractmethod
+    def from_config(cls, conf: Dict[any, any]) -> any:
+        """
+        Creates an instance of this generator from the provided dictionary of configuration options
+        Options in this dictionary are guaranteed to comply to the schema provided by @ref config_schema
+
+        Why do it this way instead of using ruamels to_yaml/from_yaml setup?
+        - IMO allows simpler/more readable yaml on the user-side (tags not necessary)
+        - Want to enforce using @ref config_schema since it can be used for easy documentation of yaml configuration
+
+        Maybe some of these dont outweigh the costs of having to implement this for every generator?
+            idk, revisit in the future. lets just get something working for now
+            There's probably better ways to do this.. generating schema from dataclass
+        """
+        pass
+
     @abstractmethod
     def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
         """

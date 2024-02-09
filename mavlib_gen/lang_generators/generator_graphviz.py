@@ -13,31 +13,34 @@
 from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
 from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
-from typing import Dict, Tuple
+from typing import Dict, Tuple, ClassVar, List
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
 import re
 from schema import Optional, Literal
+from dataclasses import dataclass
 
 
+@dataclass
 class GraphvizLangGenerator(AbstractLangGenerator):
+    """
+    MavlibGen Graphiz generator
+
+    Attributes:
+        include_framing (bool): Include MAVLink packet framing bytes in the diagram (crc, msgid, len, etc)
+        include_label (bool): include a label at the top of a message diagram with the message name
+    """
+
     # max length a field name can be in number of characters per byte/column it occupies
     # in the diagram. this dictates when a newline should be inserted in a field name
-    MAX_NAME_LEN_PER_BYTE = 13
+    MAX_NAME_LEN_PER_BYTE: ClassVar[int] = 13
     # colors to alternate field backgrounds so they are more easy to distinguish
     # see: https://graphviz.org/doc/info/colors.html for options
-    FIELD_COLORS = ["lightgrey", "lightyellow"]
-    EXTENSION_FIELD_COLORS = ["darkseagreen1", "darkseagreen"]
+    FIELD_COLORS: ClassVar[List[str]] = ["lightgrey", "lightyellow"]
+    EXTENSION_FIELD_COLORS: ClassVar[List[str]] = ["darkseagreen1", "darkseagreen"]
+    TEMPLATE_DIR: ClassVar[Path] = Path(__file__).parent.resolve() / "templates" / "graphviz"
 
-    def __init__(self, include_framing: bool = False, include_label: bool = True):
-        """
-        :param include_framing: Include MAVLink packet framing bytes in the diagram
-            (crc, msgid, len, etc)
-        :param include_label: include a label at the top of a message diagram with the
-            message name
-        """
-        self.include_framing = include_framing
-        self.include_label = include_label
-        self.template_dir = Path(__file__).parent.resolve() / "templates" / "graphviz"
+    include_framing: bool = False
+    include_label: bool = True
 
     def lang_name(self) -> str:
         return "graphviz"
@@ -60,6 +63,16 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                 )
             ): bool,
         }
+
+    @classmethod
+    def from_config(cls, conf: Dict[any, any]) -> any:
+        return GraphvizLangGenerator(
+            include_framing=conf.get("include_framing", cls.include_framing),
+            include_label=conf.get("include_label", cls.include_label),
+        )
+
+    def __repr__(self) -> str:
+        return f"GraphvizLangGenerator(include_framing: {self.include_framing}, include_label: {self.include_label})"
 
     def generate_table_rows(self, msg: MavlinkXmlMessage, num_cols: int) -> str:
         """
@@ -191,7 +204,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
         output_dir.mkdir(parents=True, exist_ok=True)
 
         jenv = Environment(
-            loader=PackageLoader("mavlib_gen", package_path=self.template_dir),
+            loader=PackageLoader("mavlib_gen", package_path=self.TEMPLATE_DIR),
             autoescape=select_autoescape(),
             # trim whitespace thats automatically inserted for jinja template blocks
             trim_blocks=True,
