@@ -15,23 +15,51 @@
 from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
 from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
-from typing import Dict
-from ..model.mavlink_xml import MavlinkXmlFile
+from typing import Dict, ClassVar
+from mavlib_gen.model.mavlink_xml import MavlinkXmlFile
 import shutil
+from dataclasses import dataclass
+from schema import Optional, Literal
 
 
+@dataclass
 class EmbCppLangGenerator(AbstractLangGenerator):
-    def __init__(self, use_dialect_namespaces: bool = True):
-        """
-        :param use_dialect_namespaces: Put Message/Payload definitions within a namespace
+    """
+    Embedded C++ generator
+
+    Attributes:
+        use_dialect_namespaces (bool): Put Message/Payload definitions within a namespace
             that has the same name as the mavlink XML file they are contained in
-        """
-        self.use_dialect_namespaces = use_dialect_namespaces
-        script_dir = Path(__file__).parent.resolve()
-        self.template_dir = script_dir / "templates" / "emb_cpp"
+    """
+
+    TEMPLATE_DIR: ClassVar[Path] = Path(__file__).parent.resolve() / "templates" / "emb_cpp"
+    use_dialect_namespaces: bool = True
 
     def lang_name(self) -> str:
         return "emb_cpp"
+
+    @classmethod
+    def config_schema(cls) -> Dict[any, any]:
+        return {
+            Optional(
+                Literal(
+                    "use_dialect_namespaces",
+                    description=(
+                        "Place message definitions in a namespace that corresponds to the"
+                        + "xml file name (dialect) they are defined within"
+                    ),
+                )
+            ): bool,
+        }
+
+    @classmethod
+    def from_config(cls, conf: Dict[any, any]) -> any:
+        return EmbCppLangGenerator(
+            use_dialect_namespaces=conf.get("use_dialect_namespaces", cls.use_dialect_namespaces),
+        )
+
+    def __repr__(self) -> str:
+        return f"EmbCppLangGenerator(use_dialect_namespaces: {self.use_dialect_namespaces})"
 
     def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
         # TODO: move boilerplate checks up to ABC
@@ -41,7 +69,7 @@ class EmbCppLangGenerator(AbstractLangGenerator):
         output_dir.mkdir(parents=True, exist_ok=True)
 
         jenv = Environment(
-            loader=PackageLoader("mavlib_gen", package_path=self.template_dir),
+            loader=PackageLoader("mavlib_gen", package_path=self.TEMPLATE_DIR),
             autoescape=select_autoescape(),
             # trim whitespace thats automatically inserted for jinja template blocks
             trim_blocks=True,
@@ -83,7 +111,7 @@ class EmbCppLangGenerator(AbstractLangGenerator):
                 "MavlinkTypes.hpp",
             ]
             for src_filename in static_sources:
-                src_path = self.template_dir / src_filename
+                src_path = self.TEMPLATE_DIR / src_filename
                 dest_path = output_dir / "inc" / src_filename
                 shutil.copyfile(src_path, dest_path)
 

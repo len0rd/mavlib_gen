@@ -17,7 +17,7 @@ script_dir = Path(__file__).parent.resolve()
 repo_root_dir = script_dir.parent.parent.parent.absolute()
 sys.path.insert(0, repo_root_dir)
 
-from mavlib_gen.generator import generate
+from mavlibgen import MavlibgenRunner
 
 # when True, generated files will not be deleted on module teardown
 DEBUG_MODE = True
@@ -33,8 +33,8 @@ TEST_MSG_DEF = script_dir.parent / "test_cases" / f"{DIALECT_NAME}.xml"
 
 
 def test_emb_cpp_generation():
-    """For now just testing that generating the diagrams doesnt cause a crash"""
-    assert generate(TEST_MSG_DEF, "emb_cpp", TESTGEN_OUTPUT_BASE_DIR)
+    """For now just testing that generating the code doesnt cause a crash"""
+    assert MavlibgenRunner.generate_once(TEST_MSG_DEF, "emb_cpp", TESTGEN_OUTPUT_BASE_DIR)
 
 
 # def test_inc_tree_diagram():
