@@ -2,12 +2,6 @@
     "files.associations": {
         "*.in": "cpp",
     },
-    "python.formatting.provider": "black",
-    "python.linting.flake8Enabled": true,
-    "python.linting.flake8Args": [
-        "--config .flake8",
-        "mavlib_gen"
-    ],
     "python.testing.unittestEnabled": true,
     "editor.formatOnSave": false,
     "[python]": {
