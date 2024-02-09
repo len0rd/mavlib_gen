@@ -13,7 +13,6 @@
 import logging
 from pathlib import Path
 from typing import List, Dict
-from .validator import MavlinkXmlValidator
 from .lang_generators.generator_base import AbstractLangGenerator
 from .lang_generators.generator_python import PythonLangGenerator
 from .lang_generators.generator_graphviz import GraphvizLangGenerator
@@ -33,7 +32,8 @@ GENERATOR_MAP = {
 class MavlibGenerator:
     """
     Primary generation class. Generates mavlib code using validated mavlink model objects and
-    user configuration. Exists as a intermediary between yaml configuration and the language generators
+    user configuration. Exists as a intermediary between yaml configuration and the language
+    generators
     """
 
     # Output directory for generated files
@@ -43,13 +43,15 @@ class MavlibGenerator:
     @classmethod
     def yaml_schema() -> Dict[any, any]:
         """
-        Get YAML schema for the mavgen generation component. Includes schema for all language generators
+        Get YAML schema for the mavgen generation component. Includes schema for all language
+        generators
         """
         generate_options = {}
         generate_options[
             Literal(
                 "outdir",
-                description="Output directory for generated files (will be created if necessary). Relative to the configuration file",
+                description="Output directory for generated files (will be created if necessary)."
+                + "Relative to the configuration file",
             )
         ] = str
         # append each possible generation language as an option
@@ -79,7 +81,7 @@ class MavlibGenerator:
     def __repr__(self) -> str:
         return f"MavlibGenerator(\n\toutdir: {self.outdir},\n\tgenerators: {self.generators}\n)"
 
-    def generate(self, mav_xmls: Dict[str, MavlinkXmlFile]):
+    def generate(self, mav_xmls: Dict[str, MavlinkXmlFile]) -> bool:
         result = True
         for generator in self.generators:
             out_path = Path(self.outdir).resolve() / generator.lang_name()

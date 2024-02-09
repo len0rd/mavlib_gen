@@ -13,50 +13,127 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 import argparse
-import sys, os
+import sys
 import logging
+from pathlib import Path
+import json
+from typing import List, Union
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-print("In module products sys.path[0], __package__ ==", sys.path[0], __package__)
 from mavlib_gen.validator import MavlinkXmlValidator
-
-DEFAULT_GRAPH_FILE = "include_graph.dot"
-
-
-def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument(
-        "--no-validation",
-        action="store_true",
-        default=False,
-        help="Skip validation step",
-    )
-    parser.add_argument(
-        "--no-generation", action="store_true", default=False, help="Skip generation step"
-    )
-
-    parser.add_argument(
-        "xmls",
-        nargs="+",
-        help="One or more XMLs to work with. Validation will expand any includes so you do not need to add all of those XMLs as arguments",
-    )
+from mavlib_gen.generator import MavlibGenerator
+from schema import Schema, SchemaError
+from ruamel.yaml import YAML
 
 
-def run(args: argparse.Namespace):
-    if not args.no_validation:
-        xml_validator = MavlinkXmlValidator()
-        result = xml_validator.validate(args.xmls)
-        if result is None:
-            return -1
+class MavlibgenRunner:
+    """
+    Top-level class to run mavlib_gen's validation and generation components.
+    """
 
-    return 0
+    def __init__(self, mavlink_xmls: List[str], config_file: str = None):
+        """
+        :param config_file: path to the yaml configuration file that specifies the
+            settings for this MavlibgenRunner instance. Will be used by @ref run
+        :param mavlink_xmls: List of 1 or more paths to mavlink xmls to validate and generate
+            with this MavlibgenRunner instance
+        """
+        self.config_file = Path(config_file).resolve() if config_file is not None else None
+        self.mavlink_xmls = [Path(xml_file).resolve() for xml_file in mavlink_xmls]
+        self.generator = None
+        self.validator = MavlinkXmlValidator()
+
+    def load_configuration(self) -> bool:
+        """
+        Verify the configuration file provided at construction complies with the libraries schema
+        """
+        if self.config_file is None:
+            return True
+        elif not self.config_file.is_file():
+            logging.error(f"Unable to locate the configuration file {self.config_file}")
+            return False
+        yaml = YAML(type="safe")
+        config_schema = Schema(MavlibGenerator.yaml_schema())
+        with open(self.config_file, "r") as conf_raw:
+            user_config = yaml.load(conf_raw)
+            try:
+                config_schema.validate(user_config)
+                logging.debug("User config file is compliant to the mavlib schema")
+            except SchemaError as se:
+                logging.error(
+                    f"Encountered an error while validating {self.config_file} against the schema"
+                )
+                raise se
+            self.generator = MavlibGenerator.from_config(user_config.get("generate", {}))
+
+    def run(self) -> bool:
+        # load settings from configuration file
+        if not self.load_configuration():
+            return False
+
+        validated_xmls = self.validator.validate(self.mavlink_xmls)
+        if validated_xmls is None:
+            return False  # failed to validated xml files
+
+        if self.generator is not None:
+            return self.generator.generate(validated_xmls)
+        return True
+
+    @classmethod
+    def generate_once(
+        cls, xmls: Union[str, List[str]], output_lang: str, output_location: str
+    ) -> bool:
+        """
+        Do a single language generation using default configuration. No YAML required
+
+        Arguments:
+            xmls: One or more paths to MAVLink xml files to validate and generate
+            output_lang: the language to generate
+            output_location: base directory to place resulting files
+        """
+        # input validation
+        if xmls is None:
+            logging.fatal("No valid Mavlink xml paths provided")
+            return False
+
+        if not isinstance(xmls, list):
+            xmls = [xmls]
+
+        validator = MavlinkXmlValidator()
+
+        validated_xmls = validator.validate(xmls)
+        if validated_xmls is None:
+            return False  # failed to validate
+
+        generator = MavlibGenerator(outdir=output_location)
+        return generator.generate_one(validated_xmls, output_lang)
+
+    @classmethod
+    def add_args(cls, parser: argparse.ArgumentParser):
+        """
+        Specify CLI args that can be used to construct and run MavlibgenRunner
+        """
+        parser.add_argument(
+            "config_file",
+            help="yaml configuration file for this run of mavlibgen. See docs for config file schema",
+        )
+
+        parser.add_argument(
+            "xmls",
+            nargs="+",
+            help="One or more XMLs to work with. Validation will expand any includes so you do not need to add all of those XMLs as arguments",
+        )
 
 
 def main() -> int:
     logging.basicConfig(level=logging.DEBUG)
+
     parser = argparse.ArgumentParser()
-    add_args(parser)
+    MavlibgenRunner.add_args(parser)
     args = parser.parse_args()
-    return run(args)
+    runner = MavlibgenRunner(mavlink_xmls=args.xmls, config_file=args.config_file)
+    if runner.run():
+        return 0
+    return 1
 
 
 if __name__ == "__main__":

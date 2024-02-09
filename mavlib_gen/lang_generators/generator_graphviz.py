@@ -26,7 +26,8 @@ class GraphvizLangGenerator(AbstractLangGenerator):
     MavlibGen Graphiz generator
 
     Attributes:
-        include_framing (bool): Include MAVLink packet framing bytes in the diagram (crc, msgid, len, etc)
+        include_framing (bool): Include MAVLink packet framing bytes in the diagram (crc, msgid,
+            len, etc)
         include_label (bool): include a label at the top of a message diagram with the message name
     """
 
@@ -72,7 +73,10 @@ class GraphvizLangGenerator(AbstractLangGenerator):
         )
 
     def __repr__(self) -> str:
-        return f"GraphvizLangGenerator(include_framing: {self.include_framing}, include_label: {self.include_label})"
+        return (
+            f"GraphvizLangGenerator(include_framing: {self.include_framing},"
+            + "include_label: {self.include_label})"
+        )
 
     def generate_table_rows(self, msg: MavlinkXmlMessage, num_cols: int) -> str:
         """
