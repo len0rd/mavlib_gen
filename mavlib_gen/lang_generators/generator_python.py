@@ -14,9 +14,10 @@ from mavlib_gen.lang_generators.generator_base import AbstractLangGenerator
 from pathlib import Path
 import shutil
 from jinja2 import Environment, PackageLoader, select_autoescape
-from typing import Dict
+from typing import Dict, ClassVar
 from ..model.mavlink_xml import MavlinkXmlFile, MavlinkXmlMessage, MavlinkXmlMessageField
 from schema import Optional, Literal
+from dataclasses import dataclass
 
 # map of supported mavlink types -> python struct pack types
 TYPE_TO_STRUCT_FORMAT_MAP = {
@@ -60,15 +61,20 @@ def generate_message_struct_pack_str(message: MavlinkXmlMessage) -> str:
     return struct_pack_str
 
 
+@dataclass
 class PythonLangGenerator(AbstractLangGenerator):
-    def __init__(self, use_properties: bool = False):
-        """
-        :param use_properties: Use python properties in object generation instead of instance
+    """
+    MavlibGen Python generator
+
+    Attributes:
+        use_properties (bool): Use python properties in object generation instead of instance
             attributes. This means in generated message objects, fields will have get/set methods
             that can provide greater type enforcement and doc string retrieval compatibility
-        """
-        self.template_dir = Path(__file__).parent.resolve() / "templates" / "python"
-        self.use_properties = use_properties
+    """
+
+    TEMPLATE_DIR: ClassVar[Path] = Path(__file__).parent.resolve() / "templates" / "python"
+
+    use_properties: bool = False
 
     def lang_name(self) -> str:
         return "python"
@@ -84,6 +90,13 @@ class PythonLangGenerator(AbstractLangGenerator):
             ): bool,
         }
 
+    @classmethod
+    def from_config(cls, conf: Dict[any, any]) -> any:
+        return PythonLangGenerator(use_properties=conf.get("use_properties", cls.use_properties))
+
+    def __repr__(self) -> str:
+        return f"PythonLangGenerator(use_properties: {self.use_properties})"
+
     def generate(self, validated_xmls: Dict[str, MavlinkXmlFile], output_dir: Path) -> bool:
         # TODO: move boilerplate checks up to ABC
         output_dir = Path(output_dir)
@@ -93,7 +106,7 @@ class PythonLangGenerator(AbstractLangGenerator):
         output_dir.mkdir(parents=True, exist_ok=True)
 
         jenv = Environment(
-            loader=PackageLoader("mavlib_gen", package_path=self.template_dir),
+            loader=PackageLoader("mavlib_gen", package_path=self.TEMPLATE_DIR),
             autoescape=select_autoescape(),
             # trim whitespace thats automatically inserted for jinja template blocks
             trim_blocks=True,
@@ -124,7 +137,7 @@ class PythonLangGenerator(AbstractLangGenerator):
 
         # copy over types
         file_to_cp = "mavlink_types.py"
-        mavlink_types_src = self.template_dir / file_to_cp
+        mavlink_types_src = self.TEMPLATE_DIR / file_to_cp
         mavlink_types_dst = output_dir / file_to_cp
         shutil.copyfile(mavlink_types_src, mavlink_types_dst)
 
