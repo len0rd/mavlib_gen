@@ -14,11 +14,12 @@ import logging
 from pathlib import Path
 from typing import List, Dict
 from .validator import MavlinkXmlValidator
+from .lang_generators.generator_base import AbstractLangGenerator
 from .lang_generators.generator_python import PythonLangGenerator
 from .lang_generators.generator_graphviz import GraphvizLangGenerator
+from .model.mavlink_xml import MavlinkXmlFile
 from schema import Optional, Literal, Or
-
-# from .lang_generators.generator_base import AbstractLangGenerator
+from dataclasses import dataclass, field
 
 log = logging.getLogger(__name__)
 
@@ -28,56 +29,67 @@ GENERATOR_MAP = {
 }
 
 
-def yaml_schema() -> Dict[any, any]:
+@dataclass
+class MavlibGenerator:
     """
-    Get YAML schema for the mavgen generation component. Includes schema for all language generators
+    Primary generation class. Generates mavlib code using validated mavlink model objects and
+    user configuration. Exists as a intermediary between yaml configuration and the language generators
     """
-    generate_options = {}
-    generate_options[
-        Literal(
-            "outdir",
-            description="Output directory for generated files (will be created if necessary)",
-        )
-    ] = str
-    # append each possible generation language as an option
-    for lang_name, lang_cls in GENERATOR_MAP.items():
+
+    # Output directory for generated files
+    outdir: str = ""
+    generators: List[AbstractLangGenerator] = field(default_factory=list)
+
+    @classmethod
+    def yaml_schema() -> Dict[any, any]:
+        """
+        Get YAML schema for the mavgen generation component. Includes schema for all language generators
+        """
+        generate_options = {}
         generate_options[
-            Optional(Literal(lang_name, description=f"generate Mavlink in {lang_name}"))
-        ] = Or(lang_cls.config_schema(), None)
-    return {
-        Optional(
-            Literal("generate", description="Root element for configuring Mavlink generation")
-        ): generate_options
-    }
+            Literal(
+                "outdir",
+                description="Output directory for generated files (will be created if necessary). Relative to the configuration file",
+            )
+        ] = str
+        # append each possible generation language as an option
+        for lang_name, lang_cls in GENERATOR_MAP.items():
+            generate_options[
+                Optional(Literal(lang_name, description=f"generate Mavlink in {lang_name}"))
+            ] = Or(lang_cls.config_schema(), None)
+        return {
+            Optional(
+                Literal("generate", description="Root element for configuring Mavlink generation")
+            ): generate_options
+        }
 
+    @classmethod
+    def from_config(cls, conf: Dict[any, any]) -> any:
+        print(conf)
+        gen = MavlibGenerator()
+        for k in conf.keys():
+            if k in GENERATOR_MAP.keys():
+                value = conf.get(k, {})
+                value = {} if value is None else value
+                gen.generators.append(GENERATOR_MAP[k].from_config(value))
+            elif k == "outdir":
+                gen.outdir = conf.get(k, "")
+        return gen
 
-def generate(xmls: List[str], output_lang: str, output_location: str) -> bool:
-    """
-    Validate the provided xml(s) and generate into MAVLink code of output_lang in output_location
-    @param xmls
-        String list of filepaths to mavlink message definition xmls to generate messages from
-    """
+    def __repr__(self) -> str:
+        return f"MavlibGenerator(\n\toutdir: {self.outdir},\n\tgenerators: {self.generators}\n)"
 
-    # input validation
-    output_lang = output_lang.lower()
-    if output_lang not in GENERATOR_MAP:
-        log.fatal(f"Desired output language '{output_lang}' not recognized")
-        return False
+    def generate(self, mav_xmls: Dict[str, MavlinkXmlFile]):
+        result = True
+        for generator in self.generators:
+            out_path = Path(self.outdir).resolve() / generator.lang_name()
+            result = result and generator.generate(mav_xmls, out_path)
+        return result
 
-    if xmls is None:
-        log.fatal("No valid Mavlink xml paths provided")
-        return False
-
-    if not isinstance(xmls, list):
-        xmls = [xmls]
-
-    validator = MavlinkXmlValidator()
-
-    validated_xmls = validator.validate(xmls)
-    if validated_xmls is None:
-        return False  # failed to validate
-
-    # generate output
-    lang_generator = GENERATOR_MAP[output_lang]()
-    outdir = Path(output_location)
-    return lang_generator.generate(validated_xmls, outdir)
+    def generate_one(self, mav_xmls: Dict[str, MavlinkXmlFile], output_language: str) -> bool:
+        output_language = output_language.lower()
+        if output_language not in GENERATOR_MAP:
+            log.fatal(f"Desired output language '{output_language}' not recognized")
+            return False
+        lang_generator = GENERATOR_MAP[output_language]()
+        return lang_generator.generate(mav_xmls, Path(self.outdir))
