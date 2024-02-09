@@ -17,7 +17,8 @@ from pathlib import Path
 script_dir = Path(__file__).parent.resolve()
 sys.path.insert(0, script_dir.parent.parent)
 
-from mavlib_gen.generator import generate, GENERATOR_MAP
+from mavlibgen import MavlibgenRunner
+from mavlib_gen.generator import GENERATOR_MAP
 
 TEST_OUT_DIR = script_dir.parent / "test_artifacts" / str(int(time.time_ns() / 1000))
 
@@ -34,18 +35,19 @@ def teardown_module(module):
 def test_generator_bad_inputs():
     """verify top-level generate method rejects bad inputs"""
     # Bad xml input param
-    assert not generate(None, VALID_OUTPUT_LANG, TEST_OUT_DIR)
+
+    assert not MavlibgenRunner.generate_once(None, VALID_OUTPUT_LANG, TEST_OUT_DIR)
     # bad output language
-    assert not generate(["test.xml"], "asdf", TEST_OUT_DIR)
+    assert not MavlibgenRunner.generate_once(["test.xml"], "asdf", TEST_OUT_DIR)
 
 
 def test_no_gen_on_validation_fail():
     """Verify if XML validation fails, no files are generated"""
     invalid_file = script_dir / "test_cases" / "invalid_mavlink.xml"
-    assert not generate(invalid_file, VALID_OUTPUT_LANG, TEST_OUT_DIR)
+    assert not MavlibgenRunner.generate_once(invalid_file, VALID_OUTPUT_LANG, TEST_OUT_DIR)
 
 
 def test_gen_with_valid_file():
     """verify if the file is valid, generate returns true"""
     valid_file = script_dir / "test_cases" / "valid_mavlink.xml"
-    assert generate(valid_file, VALID_OUTPUT_LANG, TEST_OUT_DIR)
+    assert MavlibgenRunner.generate_once(valid_file, VALID_OUTPUT_LANG, TEST_OUT_DIR)

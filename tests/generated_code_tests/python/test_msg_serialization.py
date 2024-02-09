@@ -18,7 +18,7 @@ script_dir = Path(__file__).parent.resolve()
 sys.path.insert(0, script_dir.parent.parent.parent.absolute())
 
 from typing import Union, List
-from mavlib_gen.generator import generate
+from mavlibgen import MavlibgenRunner
 
 # when True, generated files will not be deleted on module teardown
 DEBUG_MODE = True
@@ -34,12 +34,12 @@ TEST_MSG_DEF = script_dir.parent / "test_cases" / f"{DIALECT_NAME}.xml"
 
 
 def generate_mavlib(file_in: Union[List[str], str], dir_out: str) -> bool:
-    return generate(file_in, "python", dir_out)
+    return MavlibgenRunner.generate_once(file_in, "python", dir_out)
 
 
 def setup_module(module):
     """pytest module setup. Generate the code that will be under test"""
-    assert generate(TEST_MSG_DEF, "python", TESTGEN_OUTPUT_BASE_DIR)
+    assert MavlibgenRunner.generate_once(TEST_MSG_DEF, "python", TESTGEN_OUTPUT_BASE_DIR)
     sys.path.insert(0, TESTGEN_OUTPUT_BASE_DIR.as_posix())
 
 
