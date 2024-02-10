@@ -16,7 +16,6 @@ import argparse
 import sys
 import logging
 from pathlib import Path
-import json
 from typing import List, Union
 
 from mavlib_gen.validator import MavlinkXmlValidator
@@ -30,16 +29,24 @@ class MavlibgenRunner:
     Top-level class to run mavlib_gen's validation and generation components.
     """
 
-    def __init__(self, mavlink_xmls: List[str], config_file: str = None):
+    def __init__(
+        self, mavlink_xmls: Union[str, List[str]], config_file: str = None, generator: any = None
+    ):
         """
         :param config_file: path to the yaml configuration file that specifies the
             settings for this MavlibgenRunner instance. Will be used by @ref run
         :param mavlink_xmls: List of 1 or more paths to mavlink xmls to validate and generate
             with this MavlibgenRunner instance
+        :param generator: Optional. Manually specify a generator to use. Will be overwritten by
+            functions like @ref load_configuration if the provided :param: config_file specifies
+            generators. A generator only needs a function that looks like
+            MavlibGenerator.generate_all
         """
         self.config_file = Path(config_file).resolve() if config_file is not None else None
+        if not isinstance(mavlink_xmls, list):
+            mavlink_xmls = [mavlink_xmls]
         self.mavlink_xmls = [Path(xml_file).resolve() for xml_file in mavlink_xmls]
-        self.generator = None
+        self.generator = generator
         self.validator = MavlinkXmlValidator()
 
     def load_configuration(self) -> bool:
