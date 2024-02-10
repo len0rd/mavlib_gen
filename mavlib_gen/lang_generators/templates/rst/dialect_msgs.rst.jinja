@@ -1,1 +1,42 @@
-.. _{{  }}
+.. _{{ xmlfile.get_name("lower_snake") }}_messages
+
+
+{% set dialect_name_uc = xmlfile.get_name("UpperCamel") %}
+{{ dialect_name_uc }} Messages
+{{ "=" * dialect_name_uc|length }}=========
+
+{% if xmlfile.xml.version is not none %}
+**Version:** {{ xmlfile.xml.version }}
+{% endif %}
+{% if xmlfile.xml.dialect is not none %}
+**Dialect:** {{ xmlfile.xml.dialect }}
+{% endif %}
+{# TODO: add include list that links to the other files message definitions #}
+
+{% for msg in xmlfile.xml.messages %}
+{{ msg.name }} ({{ msg.id }})
+{{ "-" * msg.name|length }}--{{ "-" * msg.id|string|length }}-
+
+{{ msg.formatted_description(line_prefix="") }}
+
+{% if xml_diagram_dir is not none %}
+.. graphviz:: {{ xml_diagram_dir }}/{{ msg.name }}.dot
+
+{% endif %}
+.. csv-table:: Fields
+    :header: "Name", "Type", "Description"
+
+    {% for field in msg.fields %}
+    "{{ field.name }}", "{{ field.type }}{% if field.is_enum %} Enum: :ref:`{{ field.enum }}`{% endif %}", "{{ field.formatted_description(line_prefix="    ") | replace('"', '\\"') }}"
+    {% endfor %}
+
+{% if msg.has_extensions %}
+.. csv-table:: Extension Fields
+    :header: "Name", "Type", "Description"
+
+    {% for field in msg.extension_fields %}
+    "{{ field.name }}", "{{ field.type }}{% if field.is_enum %} Enum: :ref:`{{ field.enum }}`{% endif %}", "{{ field.formatted_description(line_prefix="    ") | replace('"', '\\"') }}"
+    {% endfor %}
+
+{% endif %}
+{% endfor %}

@@ -225,8 +225,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                 inc_tree_out.write(include_tree_template.render(xmlfiles=validated_xmls.values()))
 
         for name, dialect in validated_xmls.items():
-            if name.endswith(".xml"):
-                name = name[:-4]
+            name = dialect.name
 
             if len(dialect.xml.messages) == 0:
                 # no messages to generate for this xml file. continue before dir is made
