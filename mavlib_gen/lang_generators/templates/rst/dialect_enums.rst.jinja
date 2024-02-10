@@ -1,0 +1,20 @@
+.. _{{ xmlfile.get_name("lower_snake") }}_enums
+
+{% set dialect_name_uc = xmlfile.get_name("UpperCamel") %}
+{{ dialect_name_uc }} Enums
+{{ "=" * dialect_name_uc|length }}======
+
+{% for enum in xmlfile.xml.enums %}
+{{ enum.name }}
+{{ "-" * enum.name|length }}
+
+{{ enum.formatted_description(line_prefix="") }}
+
+.. csv-table:: Entries
+    :header: "Value", "Entry Name", "Description"
+
+    {% for entry in enum.entries %}
+    "{{ entry.value }}", "{{ entry.name }}", "{{ entry.formatted_description(line_prefix="    ")|replace('"', '\\"') }}"
+    {% endfor %}
+
+{% endfor %}

@@ -94,10 +94,29 @@ class MavlinkElementWithDescription(object):
         """
         Get a formatted version of this elements description. This mainly helps fix up multi-line
         descriptions to look nice while hopefully preserving the desired look of the author
+        Actions performed by the formatter:
+        - rstriping whitespace/newlines
+        - lstripping newlines/whitespahce if :param leading_newline: is False
+        - removing commone whitespace at the start of each newline for all lines after the first
+            this removes any superfluous whitespace in the description that was added to make so
+            it would be properly formatted in the XML definition
+        - line_prefix replacement (explained in param doc)
+
+        :param line_prefix: Replace all newlines with a newline+this string
+            ie: if line_prefix="* " then all "\n" in the string will be replaced with "\n* "
         """
         return raw_str_formatter(
             self.description, line_prefix=line_prefix, leading_newline=leading_newline
         )
+
+    def single_line_description(self) -> str:
+        """
+        Remove all newlines from the description field. Try to avoid using this in generators
+        as the user may be using newlines to format the description in a more readable way.
+        In general, try and preserve user formatting as much as possible. Use this in situations
+        where the generated content must be on a single line for compliance
+        """
+        return self.description.replace("\n", " ")
 
 
 class MavlinkElementWithName:
@@ -193,7 +212,7 @@ class MavlinkXmlEnumEntry(MavlinkElementWithDescription, MavlinkElementWithName)
     def value(self) -> str:
         """
         Value of the enum. Returned as a string so it will look identical to its declaration
-        in the message definition. Useful for hex numbers
+        in the message definition (Useful for hex numbers)
         """
         return self._value
 
@@ -260,6 +279,11 @@ class MavlinkXmlEnum(MavlinkElementWithDescription, MavlinkElementWithName):
     def entries(self) -> List[MavlinkXmlEnumEntry]:
         """List of enum entries in the mavlink enum in the order they're defined"""
         return self._entries
+
+    @property
+    def has_params(self) -> bool:
+        """Return true if this enum contains any entries that have param fields, otherwise false"""
+        return any([entry.has_params for entry in self.entries])
 
     def __append_entry(self, entry_data_elem: DataElement) -> None:
         """Append a new entry to this enums list of entries"""
@@ -332,6 +356,11 @@ class MavlinkXmlMessageField(MavlinkElementWithDescription, MavlinkElementWithNa
     @property
     def is_array(self) -> bool:
         return self.array_len > 0
+
+    @property
+    def is_enum(self) -> bool:
+        """Returns true if the field references an enum, otherwise false"""
+        return hasattr(self, "enum")
 
     def get_type(self, lang: str) -> str:
         """

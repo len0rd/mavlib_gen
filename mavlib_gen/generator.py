@@ -17,6 +17,7 @@ from .lang_generators.generator_base import AbstractLangGenerator
 from .lang_generators.generator_python import PythonLangGenerator
 from .lang_generators.generator_graphviz import GraphvizLangGenerator
 from .lang_generators.generator_emb_cpp import EmbCppLangGenerator
+from .lang_generators.generator_rst import RstLangGenerator
 from .model.mavlink_xml import MavlinkXmlFile
 from schema import Optional, Literal, Or
 from dataclasses import dataclass, field
@@ -27,6 +28,7 @@ GENERATOR_MAP = {
     "python": PythonLangGenerator,
     "graphviz": GraphvizLangGenerator,
     "emb_cpp": EmbCppLangGenerator,
+    "rst": RstLangGenerator,
 }
 
 

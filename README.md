@@ -11,9 +11,9 @@ Language         | Generator Status | Notes
 -----------------|------------------|------
 C                | 40%              |
 Python           | 10%              |
-Graphviz         | 199%             | Generates message structure diagrams for documentation
+Graphviz         | 100%             | Generates message structure diagrams for documentation
 Embedded C++     | 20%              | C++ implementation with no STL or dynamic allocation
-ReStructuredText | 0%               | Sphinx-compatible RST docs of messages that can also utilize the dot files produced by the graphviz generator
+ReStructuredText | 90%              | Sphinx-compatible RST docs of messages that can also utilize the dot files produced by the graphviz generator
 
 ## Features
 
