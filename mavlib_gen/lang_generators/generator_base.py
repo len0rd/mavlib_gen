@@ -11,9 +11,10 @@
 # distribution, or http://opensource.org/licenses/MIT.
 ################################################################################
 from abc import ABC, abstractmethod
-from ..model.mavlink_xml import MavlinkXmlFile
+from mavlib_gen.model.mavlink_xml import MavlinkXmlFile
 from typing import Dict
 from pathlib import Path
+from dataclasses import dataclass
 
 
 class AbstractLangGenerator(ABC):
@@ -70,3 +71,24 @@ class AbstractLangGenerator(ABC):
         implemented language from the provided dialect file
         """
         pass
+
+
+@dataclass
+class OneShotGeneratorWrapper:
+    """
+    Wrapper that can be used by AbstractLangGenerators to give them a function signature
+    similar to MavlibGenerator.generate_all. This lets someone provide specific generator
+    instantiations to MavlibgenRunner (by providing it on construction). This is convenient
+    for unit testing so the yaml config interface can be bypassed
+
+    Attributes:
+        generator_impl: A concrete AbstractLangGenerator implementation instantiation or anything
+            that implements a similar generate method to AbstractLangGenerator.generate
+        output_dir (str): Path to the output directory to place generated files
+    """
+
+    generator_impl: any
+    output_dir: str = ""
+
+    def generate_all(self, mav_xmls: Dict[str, MavlinkXmlFile]) -> bool:
+        return self.generator_impl.generate(mav_xmls, self.output_dir)

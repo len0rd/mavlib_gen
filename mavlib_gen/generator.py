@@ -83,7 +83,10 @@ class MavlibGenerator:
     def __repr__(self) -> str:
         return f"MavlibGenerator(\n\toutdir: {self.outdir},\n\tgenerators: {self.generators}\n)"
 
-    def generate(self, mav_xmls: Dict[str, MavlinkXmlFile]) -> bool:
+    def generate_all(self, mav_xmls: Dict[str, MavlinkXmlFile]) -> bool:
+        """
+        Generate all the validated mavlink XMLs in all the configured languages
+        """
         result = True
         for generator in self.generators:
             out_path = Path(self.outdir).resolve() / generator.lang_name()
