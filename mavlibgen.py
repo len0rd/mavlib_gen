@@ -82,7 +82,7 @@ class MavlibgenRunner:
             return False  # failed to validated xml files
 
         if self.generator is not None:
-            return self.generator.generate(validated_xmls)
+            return self.generator.generate_all(validated_xmls)
         return True
 
     @classmethod
