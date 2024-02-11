@@ -175,6 +175,4 @@ class RstLangGenerator(AbstractLangGenerator):
                     )
                 )
 
-            # TODO: generate enums! link using fields to their definitions!
-
         return True
