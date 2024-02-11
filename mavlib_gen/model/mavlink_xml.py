@@ -96,10 +96,11 @@ class MavlinkElementWithDescription(object):
         descriptions to look nice while hopefully preserving the desired look of the author
         Actions performed by the formatter:
         - rstriping whitespace/newlines
-        - lstripping newlines/whitespahce if :param leading_newline: is False
-        - removing commone whitespace at the start of each newline for all lines after the first
-            this removes any superfluous whitespace in the description that was added to make so
-            it would be properly formatted in the XML definition
+        - lstripping newlines/whitespace if :param leading_newline: is False
+        - removing common whitespace at the start of each newline for all lines after the first.
+            This removes any superfluous whitespace in the description that was added for formatting
+            in the xml file. eg: the last 3 lines of this comment, there are 8 characters
+            of starting whitespace all lines have in common. those would be removed
         - line_prefix replacement (explained in param doc)
 
         :param line_prefix: Replace all newlines with a newline+this string
