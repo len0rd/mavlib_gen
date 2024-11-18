@@ -14,28 +14,28 @@ digraph Message{{ msg.get_name("UpperCamel") }} {
         <table border="1" cellspacing="0">
             <!-- Byte indicator row -->
             <tr>
-                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">0</td>
-                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">1</td>
-                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">2</td>
-                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">3</td>
-                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">4</td>
-                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">5</td>
-                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">6</td>
-                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" colspan="1">7</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" height="{{ cell_height }}" colspan="1">0</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" height="{{ cell_height }}" colspan="1">1</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" height="{{ cell_height }}" colspan="1">2</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" height="{{ cell_height }}" colspan="1">3</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" height="{{ cell_height }}" colspan="1">4</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" height="{{ cell_height }}" colspan="1">5</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" height="{{ cell_height }}" colspan="1">6</td>
+                <td bgcolor="aliceblue" fixedsize="TRUE" width="120" height="{{ cell_height }}" colspan="1">7</td>
             </tr>
             {% if include_framing %}
                 <tr>
-                    <td colspan="1" align="left">stx</td>
-                    <td colspan="1" align="left">len</td>
-                    <td colspan="1" align="left">inc_flags</td>
-                    <td colspan="1" align="left">cmp_flags</td>
-                    <td colspan="1" align="left">seq</td>
-                    <td colspan="1" align="left">sys_id</td>
-                    <td colspan="1" align="left">comp_id</td>
-                    <td colspan="1" align="left">msgid</td>
+                    <td colspan="1" height="{{ cell_height }}" align="left">stx</td>
+                    <td colspan="1" height="{{ cell_height }}" align="left">len</td>
+                    <td colspan="1" height="{{ cell_height }}" align="left">inc_flags</td>
+                    <td colspan="1" height="{{ cell_height }}" align="left">cmp_flags</td>
+                    <td colspan="1" height="{{ cell_height }}" align="left">seq</td>
+                    <td colspan="1" height="{{ cell_height }}" align="left">sys_id</td>
+                    <td colspan="1" height="{{ cell_height }}" align="left">comp_id</td>
+                    <td colspan="1" height="{{ cell_height }}" align="left">msgid</td>
                 </tr>
                 <tr>
-                    <td colspan="2" align="left">...</td>
+                    <td colspan="2" height="{{ cell_height }}" align="left">...</td>
                 {# Theres special handling for this incomplete row case in the python code #}
             {% endif %}
 

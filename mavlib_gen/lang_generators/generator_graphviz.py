@@ -39,6 +39,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
     FIELD_COLORS: ClassVar[List[str]] = ["lightgrey", "lightyellow"]
     EXTENSION_FIELD_COLORS: ClassVar[List[str]] = ["darkseagreen1", "darkseagreen"]
     TEMPLATE_DIR: ClassVar[Path] = Path(__file__).parent.resolve() / "templates" / "graphviz"
+    CELL_HEIGHT_PTS = 40
 
     include_framing: bool = False
     include_label: bool = True
@@ -118,7 +119,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                         re.DOTALL,
                     )
                 field_str += (
-                    f'    <td colspan="{clmns_available}"'
+                    f'    <td colspan="{clmns_available}" height="{self.CELL_HEIGHT_PTS}"'
                     + f' align="left" bgcolor="{field_color}">{name}</td>\n'
                 )
 
@@ -132,7 +133,8 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                         clmns_available if clmns_available < unwritten_len else unwritten_len
                     )
                     field_str += (
-                        f'    <td colspan="{cols_to_span}" bgcolor="{field_color}">...</td>\n'
+                        f'    <td colspan="{cols_to_span}" '
+                        + f'height="{self.CELL_HEIGHT_PTS}" bgcolor="{field_color}">...</td>\n'
                     )
                     clmns_available -= cols_to_span
                     unwritten_len -= cols_to_span
@@ -155,7 +157,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                         re.DOTALL,
                     )
                 field_str += (
-                    f'    <td colspan="{field.field_len}"'
+                    f'    <td colspan="{field.field_len}" height="{self.CELL_HEIGHT_PTS}"'
                     + f' align="left" bgcolor="{field_color}">{name}</td>\n'
                 )
                 clmns_available -= field.field_len
@@ -244,6 +246,7 @@ class GraphvizLangGenerator(AbstractLangGenerator):
                             msg=msg,
                             include_framing=self.include_framing,
                             include_label=self.include_label,
+                            cell_height=self.CELL_HEIGHT_PTS,
                         )
                     )
 
