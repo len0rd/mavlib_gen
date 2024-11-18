@@ -58,7 +58,7 @@ class MavlibgenRunner:
         elif not self.config_file.is_file():
             logging.error(f"Unable to locate the configuration file {self.config_file}")
             return False
-        yaml = YAML(type="safe")
+        yaml = YAML()
         config_schema = Schema(MavlibGenerator.yaml_schema())
         with open(self.config_file, "r") as conf_raw:
             user_config = yaml.load(conf_raw)
@@ -71,6 +71,7 @@ class MavlibgenRunner:
                 )
                 raise se
             self.generator = MavlibGenerator.from_config(user_config.get("generate", {}))
+        return True
 
     def run(self) -> bool:
         # load settings from configuration file

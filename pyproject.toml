@@ -33,7 +33,7 @@ dev = [
     "flake8-annotations",
     # for building docs
     "sphinx",
-    "sphinx_rtd_theme",
+    "furo",
     # hosts/rebuilds docs locally. useful for doc development
     "sphinx-autobuild",
     "pytest",

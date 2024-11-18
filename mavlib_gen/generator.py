@@ -45,7 +45,7 @@ class MavlibGenerator:
     generators: List[AbstractLangGenerator] = field(default_factory=list)
 
     @classmethod
-    def yaml_schema() -> Dict[any, any]:
+    def yaml_schema(cls) -> Dict[any, any]:
         """
         Get YAML schema for the mavgen generation component. Includes schema for all language
         generators
