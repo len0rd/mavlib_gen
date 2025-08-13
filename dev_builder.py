@@ -20,6 +20,8 @@ import logging
 from typing import List
 import pytest
 from pathlib import Path
+import json
+from schema import Schema
 
 log = logging.getLogger("dev")
 
@@ -78,7 +80,16 @@ class DocumentationBuilder:
         """
         Run documentation builder with the provided arguments
         """
+        from mavlib_gen.generator import MavlibGenerator
+
         if args.build_type == "build":
+            cls.doc_build_path.mkdir(parents=True, exist_ok=True)
+            with open(cls.doc_build_path / "conf_schema.json", "w") as write_schema:
+                write_schema.write(
+                    json.dumps(
+                        Schema(MavlibGenerator.yaml_schema()).json_schema("mavlib"), indent=2
+                    )
+                )
             command = [
                 "sphinx-build",
                 "-bhtml",
@@ -87,6 +98,13 @@ class DocumentationBuilder:
             ]
             return run_check_call(command)
         elif args.build_type == "autobuild":
+            cls.doc_build_path.mkdir(parents=True, exist_ok=True)
+            with open(cls.doc_build_path / "conf_schema.json", "w") as write_schema:
+                write_schema.write(
+                    json.dumps(
+                        Schema(MavlibGenerator.yaml_schema()).json_schema("mavlib"), indent=2
+                    )
+                )
             command = [
                 "sphinx-autobuild",
                 cls.doc_source_path.as_posix(),

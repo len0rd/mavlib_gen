@@ -9,4 +9,6 @@ A mavlink generator with a permissive MIT license.
    :maxdepth: 2
    :caption: Contents:
 
+   configuration
    lang_emb_cpp
+   development
