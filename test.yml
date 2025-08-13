@@ -1,0 +1,7 @@
+  generate:
+    outdir: outtest/
+    graphviz:
+      include_framing: true
+    rst:
+      include_msg_diagrams: true
+      generate_sphinx_root: true
